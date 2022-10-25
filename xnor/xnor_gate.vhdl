@@ -3,9 +3,9 @@ use ieee.std_logic_1164.all;
 
 entity xnor_gate is
   port(
-    xnor_in_1    : in std_logic; -- First input
-    xnor_in_2  : in std_logic;	-- Second input
-    xnor_out : out std_logic	-- XNOR result
+    xnor_in_1 : in std_logic; -- First input
+    xnor_in_2 : in std_logic; -- Second input
+    xnor_out  : out std_logic -- XNOR result
   );
 end xnor_gate;
 

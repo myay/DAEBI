@@ -7,9 +7,9 @@ end xnor_gate_tb;
 architecture test of xnor_gate_tb is
   component xnor_gate
     port(
-      xnor_in_1    : in std_logic;
-      xnor_in_2  : in std_logic;
-      xnor_out : out std_logic
+      xnor_in_1 : in std_logic; -- First input
+      xnor_in_2 : in std_logic; -- Second input
+      xnor_out  : out std_logic -- XNOR result
     );
   end component;
 
