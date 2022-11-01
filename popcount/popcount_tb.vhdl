@@ -37,6 +37,7 @@ begin
       o_val => o_val_t,
       stream_o => output_t
     );
+
   process begin
     i_val_t <= '0';
     rst_t <= '0';
@@ -48,7 +49,7 @@ begin
     wait;
   end process;
 
-  -- clock generation process
+  -- Clock generation process
   clk_process: process
     begin
       while i<max_clock_cyles loop
