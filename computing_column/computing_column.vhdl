@@ -19,20 +19,20 @@ architecture rtl of computing_column is
 signal clk_cc : std_logic; -- Clock signal
 
 -- Signals for xnor array
-signal in_cc_1 : std_logic_vector(xnor_gates_per_column-1 downto 0); -- Input 1 for xnor array
-signal in_cc_2 : std_logic_vector(xnor_gates_per_column-1 downto 0); -- Input 2 for xnor array
-signal o_data_xnor : std_logic_vector(xnor_gates_per_column-1 downto 0); -- Output of xnor array
+signal in_cc_1 : std_logic_vector(xnor_gates_per_column-1 downto 0) := (others => '0'); -- Input 1 for xnor array
+signal in_cc_2 : std_logic_vector(xnor_gates_per_column-1 downto 0) := (others => '0'); -- Input 2 for xnor array
+signal o_data_xnor : std_logic_vector(xnor_gates_per_column-1 downto 0) := (others => '0'); -- Output of xnor array
 
 -- Signals for popcount unit
-signal o_data_popc : std_logic_vector(13 downto 0); -- Output of popcount unit
+signal o_data_popc : std_logic_vector(13 downto 0) := (others => '0'); -- Output of popcount unit
 signal rst_popc, o_val_popc: std_logic := '0'; -- Reset and output signal
 signal i_val_popc : std_logic := '1';
 
 -- Signals for accumulator
 signal rst_acc, o_val_acc: std_logic := '0'; -- Reset, input signal and output signal
 signal i_val_acc : std_logic := '1';
-signal i_data_acc : std_logic_vector(8 downto 0);
-signal o_data_acc : std_logic_vector(31 downto 0); -- Output for accumulator
+signal i_data_acc : std_logic_vector(8 downto 0) := (others => '0');
+signal o_data_acc : std_logic_vector(31 downto 0) := (others => '0'); -- Output for accumulator
 
 begin
   -- Instantiate xnor array
@@ -65,15 +65,18 @@ begin
     o_val_acc => o_val_acc
   );
 
-  -- Transmit data from popcount unit to accumulator only when popcount output has finished computing
   process(clk) begin
+    -- Update clock signal of cc
     clk_cc <= clk;
     if rising_edge(clk) then
+      -- Assign inputs to input buffers
       in_cc_1 <= xnor_inputs_1;
       in_cc_2 <= xnor_inputs_2;
+      -- Assign output of popcount value to input of accumulator
       if o_val_popc = '1' then
         i_data_acc <= o_data_popc(8 downto 0);
       end if;
+      -- Assign output of accumulator to output pins of cc
       if o_val_acc = '1' then
         o_data_cc <= o_data_acc;
       end if;
