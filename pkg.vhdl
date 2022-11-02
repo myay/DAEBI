@@ -7,5 +7,5 @@ package pkg is
   constant beta_gamma              : integer := 576; -- Number of weights in neurons
   constant delta                   : integer := 196; -- Number of columns in input matrix
   constant columns                 : integer := 64; -- Number columns in accelerator
-  constant xnor_gates_per_column   : integer := 4; -- Number XNOR gates in each column
+  constant xnor_gates_per_column   : integer := 64; -- Number XNOR gates in each column
 end pkg;
