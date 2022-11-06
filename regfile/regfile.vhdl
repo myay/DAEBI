@@ -15,7 +15,7 @@ end;
 
 architecture behavior of regfile is
   type ramtype is array (3 downto 0) of std_logic_vector(31 downto 0);
-  signal mem: ramtype;
+  signal mem: ramtype := (others => (others => '0'));
 begin
   -- If write enable is 1, then store value wd3 to register a3
   process(clk) begin

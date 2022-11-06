@@ -18,11 +18,27 @@ architecture rtl of accumulator_multiregs is
   signal first_dff        : std_logic_vector(8 downto 0) := (others => '0'); -- Buffer for the input data
   signal delay_val        : std_logic_vector(1 downto 0) := (others => '0'); -- Signal for pipeline progress
   -- signal o_acc            : std_logic_vector(31 downto 0) := (others => '0'); -- Accumulation registers
-  type registers_delta is array (3 downto 0) of std_logic_vector(31 downto 0); -- Delta accumulation registers of size 32 bits (TODO: nr of regs and bit width should be generic)
-  signal registers_d      : registers_delta := (others => (others => '0'));
+  -- type registers_delta is array (3 downto 0) of std_logic_vector(31 downto 0); -- Delta accumulation registers of size 32 bits (TODO: nr of regs and bit width should be generic)
+  -- signal registers_d      : registers_delta := (others => (others => '0'));
   signal o_reg_acc        : std_logic_vector(31 downto 0) := (others => '0'); -- Buffer for the output data
   signal r_sel            : std_logic_vector(1 downto 0);
+
+  -- Variables for regfile
+  signal we3: std_logic;
+  signal a1, a3: std_logic_vector(1 downto 0);
+  signal wd3, rd1: std_logic_vector(31 downto 0);
 begin
+
+  -- Generate register file
+  inst_regfile : entity work.regfile(behavior)
+    port map(
+      clk => clk,
+      we3 => we3,
+      a1 => a1,
+      a3 => a3,
+      wd3 => wd3,
+      rd1 => rd1
+    );
 
   -- Load input data into first_dff (input buffer)
   process(clk) begin
@@ -31,7 +47,8 @@ begin
         first_dff <= (others => '0');
       elsif i_val_acc = '1' then
         first_dff <= i_data;
-        r_sel <= r_s;
+        -- r_sel <= r_s;
+        a1 <= r_s;
       end if;
     end if;
   end process;
@@ -41,16 +58,19 @@ begin
     if reset = '1' then
       o_reg_acc <= (others => '0');
     else
-      o_reg_acc <= std_logic_vector(unsigned(registers_d(to_integer(unsigned(r_s)))) + unsigned(first_dff));
+      o_reg_acc <= std_logic_vector(unsigned(rd1) + unsigned(first_dff));
     end if;
     -- o_reg_acc(8 downto 0) <= std_logic_vector(unsigned(first_dff));
   end process;
 
-  -- Store result in register at index r_s
+  -- Store result in register file at index r_s
   process(clk) begin
     if rising_edge(clk) then
       if delay_val(0) = '1' then
-        registers_d(to_integer(unsigned(r_s))) <= o_reg_acc;
+        we3 <= '1';
+        a3 <= r_s;
+        wd3 <= o_reg_acc;
+        -- registers_d(to_integer(unsigned(r_s))) <= o_reg_acc;
       end if;
     end if;
   end process;
@@ -93,7 +113,7 @@ begin
       if reset = '1' then
         o_data <= (others => '0');
       else
-        o_data <= o_reg_acc;
+        o_data <= rd1;
       end if;
     end if;
   end process;
