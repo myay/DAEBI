@@ -38,7 +38,11 @@ begin
 
   -- Accumulate input value in o_acc (accumulation register)
   process(first_dff) begin
-    o_reg_acc <= std_logic_vector(unsigned(registers_d(to_integer(unsigned(r_s)))) + unsigned(first_dff));
+    if reset = '1' then
+      o_reg_acc <= (others => '0');
+    else
+      o_reg_acc <= std_logic_vector(unsigned(registers_d(to_integer(unsigned(r_s)))) + unsigned(first_dff));
+    end if;
     -- o_reg_acc(8 downto 0) <= std_logic_vector(unsigned(first_dff));
   end process;
 
