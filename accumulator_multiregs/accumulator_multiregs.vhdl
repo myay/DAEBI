@@ -16,12 +16,11 @@ end accumulator_multiregs;
 
 architecture rtl of accumulator_multiregs is
   signal first_dff        : std_logic_vector(8 downto 0) := (others => '0'); -- Buffer for the input data
-  signal delay_val        : std_logic_vector(1 downto 0) := (others => '0'); -- Singal for pipeline progress
+  signal delay_val        : std_logic_vector(1 downto 0) := (others => '0'); -- Signal for pipeline progress
   -- signal o_acc            : std_logic_vector(31 downto 0) := (others => '0'); -- Accumulation registers
   type registers_delta is array (3 downto 0) of std_logic_vector(31 downto 0); -- Delta accumulation registers of size 32 bits (TODO: nr of regs and bit width should be generic)
   signal registers_d : registers_delta := (others => (others => '0'));
   signal o_reg_acc        : std_logic_vector(31 downto 0) := (others => '0'); -- Buffer for the output data
-  -- signal r_sel            : std_logic_vector(1 downto 0) := (others => '0');
 begin
 
   -- Load input data into first_dff (input buffer)
@@ -38,23 +37,31 @@ begin
 
   -- Accumulate input value in o_acc (accumulation register)
   process(first_dff) begin
-    if delay_val(0) = '1' then
-      o_reg_acc <= std_logic_vector(unsigned(registers_d(to_integer(unsigned(r_s)))) + unsigned(first_dff));
-    end if;
+    o_reg_acc <= std_logic_vector(unsigned(registers_d(to_integer(unsigned(r_s)))) + unsigned(first_dff));
+    -- o_reg_acc(8 downto 0) <= std_logic_vector(unsigned(first_dff));
   end process;
 
-  -- Copy current accumulation result to register
+  -- Store result in register at index r_s
   process(clk) begin
     if rising_edge(clk) then
-      if reset = '1' then
-        o_reg_acc <= (others => '0');
-      else
-        if delay_val(1) = '1' then
-          registers_d(to_integer(unsigned(r_s))) <= o_reg_acc;
-        end if;
+      if delay_val(0) = '1' then
+        registers_d(to_integer(unsigned(r_s))) <= o_reg_acc;
       end if;
     end if;
   end process;
+
+  -- -- Copy current accumulation result to register
+  -- process(clk) begin
+  --   if rising_edge(clk) then
+  --     if reset = '1' then
+  --       o_reg_acc <= (others => '0');
+  --     -- else
+  --     --   if delay_val(1) = '1' then
+  --     --     registers_d(to_integer(unsigned(r_s))) <= o_reg_acc;
+  --     --   end if;
+  --     end if;
+  --   end if;
+  -- end process;
 
   -- Determine delay through pipeline to set flag for finished computations
   process(clk) begin
