@@ -46,9 +46,21 @@ begin
     rst_t <= '0';
     wait for 1 ns;
 
+    -- write value 1 into register 1
     i_val_acc_t <= '1';
-    r_s_t <= "00";
+    r_s_t <= "01";
     input_t <= "000000001";
+    wait for 20 ns;
+
+    -- reset
+    rst_t <= '1';
+    wait for 20 ns;
+
+    -- write value 3 into register 3
+    rst_t <= '0';
+    i_val_acc_t <= '1';
+    r_s_t <= "11";
+    input_t <= "000000011";
     wait for 20 ns;
 
     wait;

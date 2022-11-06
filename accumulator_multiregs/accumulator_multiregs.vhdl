@@ -19,8 +19,9 @@ architecture rtl of accumulator_multiregs is
   signal delay_val        : std_logic_vector(1 downto 0) := (others => '0'); -- Signal for pipeline progress
   -- signal o_acc            : std_logic_vector(31 downto 0) := (others => '0'); -- Accumulation registers
   type registers_delta is array (3 downto 0) of std_logic_vector(31 downto 0); -- Delta accumulation registers of size 32 bits (TODO: nr of regs and bit width should be generic)
-  signal registers_d : registers_delta := (others => (others => '0'));
+  signal registers_d      : registers_delta := (others => (others => '0'));
   signal o_reg_acc        : std_logic_vector(31 downto 0) := (others => '0'); -- Buffer for the output data
+  signal r_sel            : std_logic_vector(1 downto 0);
 begin
 
   -- Load input data into first_dff (input buffer)
@@ -30,7 +31,7 @@ begin
         first_dff <= (others => '0');
       elsif i_val_acc = '1' then
         first_dff <= i_data;
-        -- r_sel <= r_s;
+        r_sel <= r_s;
       end if;
     end if;
   end process;
@@ -50,6 +51,13 @@ begin
     end if;
   end process;
 
+  -- process(clk) begin
+  --   if rising_edge(clk) then
+  --     if reset = '1' then
+  --       o_reg_acc <= "00000000000000000000000000000000";
+  --     end if;
+  --   end if;
+  -- end process;
   -- -- Copy current accumulation result to register
   -- process(clk) begin
   --   if rising_edge(clk) then
