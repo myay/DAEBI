@@ -16,90 +16,80 @@ end accumulator_multiregs;
 
 architecture rtl of accumulator_multiregs is
   signal first_dff        : std_logic_vector(8 downto 0) := (others => '0'); -- Buffer for the input data
-  signal delay_val        : std_logic_vector(1 downto 0) := (others => '0'); -- Signal for pipeline progress
+  signal delay_val        : std_logic_vector(2 downto 0) := (others => '0'); -- Signal for pipeline progress
   -- signal o_acc            : std_logic_vector(31 downto 0) := (others => '0'); -- Accumulation registers
   -- type registers_delta is array (3 downto 0) of std_logic_vector(31 downto 0); -- Delta accumulation registers of size 32 bits (TODO: nr of regs and bit width should be generic)
   -- signal registers_d      : registers_delta := (others => (others => '0'));
   signal o_reg_acc        : std_logic_vector(31 downto 0) := (others => '0'); -- Buffer for the output data
-  signal r_sel            : std_logic_vector(1 downto 0);
+  -- signal r_sel            : std_logic_vector(1 downto 0);
 
   -- Variables for regfile
-  signal we3: std_logic;
-  signal a1, a3: std_logic_vector(1 downto 0);
-  signal wd3, rd1: std_logic_vector(31 downto 0);
+  signal we3_am: std_logic;
+  signal a1_am, a3_am: std_logic_vector(1 downto 0);
+  signal wd3_am, rd1_am: std_logic_vector(31 downto 0);
 begin
 
   -- Generate register file
   inst_regfile : entity work.regfile(behavior)
     port map(
       clk => clk,
-      we3 => we3,
-      a1 => a1,
-      a3 => a3,
-      wd3 => wd3,
-      rd1 => rd1
+      we3 => we3_am,
+      a1 => a1_am,
+      a3 => a3_am,
+      wd3 => wd3_am,
+      rd1 => rd1_am
     );
 
-  -- Load input data into first_dff (input buffer)
+  -- Load index into a1_am to select register for value retrieval
   process(clk) begin
     if rising_edge(clk) then
       if reset = '1' then
-        first_dff <= (others => '0');
+        a1_am <= (others => '0');
       elsif i_val_acc = '1' then
-        first_dff <= i_data;
-        -- r_sel <= r_s;
-        a1 <= r_s;
+        a1_am <= r_s;
       end if;
     end if;
   end process;
 
-  -- Accumulate input value in o_acc (accumulation register)
+  -- Load input into first_dff
+  process(clk) begin
+    if rising_edge(clk) then
+      if delay_val(0) = '1' then
+        if reset = '1' then
+          first_dff <= (others => '0');
+        elsif i_val_acc = '1' then
+          first_dff <= i_data;
+        end if;
+      end if;
+    end if;
+  end process;
+
+  -- Accumulate input value and value in register into o_reg_acc (accumulation register)
   process(first_dff) begin
     if reset = '1' then
       o_reg_acc <= (others => '0');
     else
-      o_reg_acc <= std_logic_vector(unsigned(rd1) + unsigned(first_dff));
+      o_reg_acc <= std_logic_vector(unsigned(rd1_am) + unsigned(first_dff));
     end if;
     -- o_reg_acc(8 downto 0) <= std_logic_vector(unsigned(first_dff));
   end process;
 
-  -- Store result in register file at index r_s
+  -- Store result of accumulation in register file at specified index
   process(clk) begin
     if rising_edge(clk) then
-      if delay_val(0) = '1' then
-        we3 <= '1';
-        a3 <= r_s;
-        wd3 <= o_reg_acc;
-        -- registers_d(to_integer(unsigned(r_s))) <= o_reg_acc;
+      if delay_val(1) = '1' then
+        we3_am <= '1';
+        a3_am <= a1_am;
+        wd3_am <= o_reg_acc;
       end if;
     end if;
   end process;
 
-  -- process(clk) begin
-  --   if rising_edge(clk) then
-  --     if reset = '1' then
-  --       o_reg_acc <= "00000000000000000000000000000000";
-  --     end if;
-  --   end if;
-  -- end process;
-  -- -- Copy current accumulation result to register
-  -- process(clk) begin
-  --   if rising_edge(clk) then
-  --     if reset = '1' then
-  --       o_reg_acc <= (others => '0');
-  --     -- else
-  --     --   if delay_val(1) = '1' then
-  --     --     registers_d(to_integer(unsigned(r_s))) <= o_reg_acc;
-  --     --   end if;
-  --     end if;
-  --   end if;
-  -- end process;
-
   -- Determine delay through pipeline to set flag for finished computations
   process(clk) begin
     if rising_edge(clk) then
-      delay_val <= delay_val(0) & i_val_acc;
-      if delay_val(1) = '1' then
+      delay_val <= delay_val(1 downto 0) & i_val_acc;
+      if delay_val(2) = '1' then
         o_val_acc <= '1';
       else
         o_val_acc <= '0';
@@ -113,7 +103,7 @@ begin
       if reset = '1' then
         o_data <= (others => '0');
       else
-        o_data <= rd1;
+        o_data <= o_reg_acc;
       end if;
     end if;
   end process;

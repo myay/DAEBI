@@ -12,7 +12,7 @@ architecture test of regfile_tb is
       a1: in std_logic_vector(1 downto 0);
       a3: in std_logic_vector(1 downto 0);
       wd3: in std_logic_vector(31 downto 0);
-      rd1: buffer std_logic_vector(31 downto 0)
+      rd1: out std_logic_vector(31 downto 0)
     );
   end component;
 
@@ -55,7 +55,7 @@ begin
 
     a1 <= "01";
     wait for 10 ns;
-    
+
     wait;
   end process;
 end test;
