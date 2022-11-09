@@ -86,10 +86,16 @@ begin
   -- Store result of accumulation in register file at specified index
   process(clk) begin
     if rising_edge(clk) then
-      if delay_val(1) = '1' then
-        we3_am <= '1';
-        a3_am <= a1_am;
-        wd3_am <= o_reg_acc;
+      if reset = '1' then
+        we3_am <= '0';
+      else
+        if delay_val(1) = '1' then
+          we3_am <= '1';
+          a3_am <= a1_am;
+          wd3_am <= o_reg_acc;
+        else
+          we3_am <= '0';
+        end if;
       end if;
     end if;
   end process;

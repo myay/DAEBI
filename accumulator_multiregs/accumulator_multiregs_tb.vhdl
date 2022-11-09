@@ -67,7 +67,7 @@ begin
     -- reset
     i_val_acc_t <= '0';
     rst_t <= '1';
-    wait for 10 ns;
+    wait for 40 ns;
 
     -- activate
     i_val_acc_t <= '1';
@@ -77,8 +77,12 @@ begin
     i_val_acc_t <= '1';
     r_s_t <= "01";
     input_t <= "000000010";
-    wait for 20 ns;
+    wait for 40 ns;
 
+    -- reset
+    i_val_acc_t <= '0';
+    rst_t <= '1';
+    wait for 40 ns;
     -- -- reset
     -- rst_t <= '1';
     -- wait for 20 ns;
