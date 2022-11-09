@@ -9,13 +9,19 @@ end accumulator_multiregs_tb;
 
 architecture test of accumulator_multiregs_tb is
   component accumulator_multiregs
+    generic(
+      input_width : integer;
+      data_width : integer;
+      addr_width : integer;
+      nr_regs : integer
+    );
     port(
       i_val_acc   : std_logic; -- Signals whether accumulator is ready to receive new input data
       reset       : in std_logic; -- Reset signal
       clk         : in std_logic; -- Clock signal
-      r_s         : in std_logic_vector(1 downto 0); -- Register selector
-      i_data      : in std_logic_vector(8 downto 0); -- Input data
-      o_data      : out std_logic_vector(31 downto 0); -- Output data
+      r_s         : in std_logic_vector(addr_width-1 downto 0); -- Register selector
+      i_data      : in std_logic_vector(input_width-1 downto 0); -- Input data
+      o_data      : out std_logic_vector(data_width-1 downto 0); -- Output data
       o_val_acc   : out std_logic -- Signal for completion of computations
     );
   end component;
@@ -31,6 +37,12 @@ signal output_t: std_logic_vector(31 downto 0);
 
 begin
   accumulator_multiregs_test: accumulator_multiregs
+    generic map(
+      input_width => 9,
+      data_width => 32,
+      addr_width => 2,
+      nr_regs => 4
+    )
     port map(
       i_val_acc => i_val_acc_t,
       clk => clk_t,
