@@ -67,12 +67,11 @@ begin
     -- reset
     i_val_acc_t <= '0';
     rst_t <= '1';
-    wait for 20 ns;
+    wait for 10 ns;
 
     -- activate
     i_val_acc_t <= '1';
     rst_t <= '0';
-    wait for 20 ns;
 
     -- add 2 into register 1
     i_val_acc_t <= '1';

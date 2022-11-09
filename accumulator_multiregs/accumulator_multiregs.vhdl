@@ -54,9 +54,7 @@ begin
   -- Load index into a1_am to select register for value retrieval
   process(clk) begin
     if rising_edge(clk) then
-      if reset = '1' then
-        a1_am <= (others => '0');
-      elsif i_val_acc = '1' then
+      if i_val_acc = '1' then
         a1_am <= r_s;
       end if;
     end if;
@@ -65,13 +63,13 @@ begin
   -- Load input into first_dff
   process(clk) begin
     if rising_edge(clk) then
-      if delay_val(0) = '1' then
         if reset = '1' then
           first_dff <= (others => '0');
         elsif i_val_acc = '1' then
-          first_dff <= i_data;
+          if delay_val(0) = '1' then
+            first_dff <= i_data;
+          end if;
         end if;
-      end if;
     end if;
   end process;
 
@@ -99,11 +97,15 @@ begin
   -- Determine delay through pipeline to set flag for finished computations
   process(clk) begin
     if rising_edge(clk) then
-      delay_val <= delay_val(1 downto 0) & i_val_acc;
-      if delay_val(2) = '1' then
-        o_val_acc <= '1';
+      if reset = '1' then
+        delay_val <= (others => '0');
       else
-        o_val_acc <= '0';
+        delay_val <= delay_val(1 downto 0) & i_val_acc;
+        if delay_val(2) = '1' then
+          o_val_acc <= '1';
+        else
+          o_val_acc <= '0';
+        end if;
       end if;
     end if;
   end process;
