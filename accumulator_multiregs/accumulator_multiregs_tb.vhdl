@@ -31,7 +31,7 @@ signal r_s_t: std_logic_vector(1 downto 0);
 signal clk_t: std_logic := '0';
 constant clk_period : time := 10 ns;
 shared variable i: integer := 0;
-shared variable max_clock_cyles: integer := 20;
+shared variable max_clock_cyles: integer := 25;
 signal input_t: std_logic_vector(8 downto 0);
 signal output_t: std_logic_vector(31 downto 0);
 
@@ -54,10 +54,6 @@ begin
     );
 
   process begin
-    -- i_val_acc_t <= '0';
-    -- rst_t <= '0';
-    -- wait for 1 ns;
-
     -- write value 1 into register 1
     i_val_acc_t <= '1';
     r_s_t <= "01";
@@ -83,27 +79,18 @@ begin
     i_val_acc_t <= '0';
     rst_t <= '1';
     wait for 40 ns;
-    -- -- reset
-    -- rst_t <= '1';
-    -- wait for 20 ns;
 
-    -- -- write value 3 into register 3
-    -- rst_t <= '0';
-    -- i_val_acc_t <= '1';
-    -- r_s_t <= "11";
-    -- input_t <= "000000011";
-    -- wait for 20 ns;
+    -- write value 5 into register 4
+    rst_t <= '0';
+    i_val_acc_t <= '1';
+    r_s_t <= "11";
+    input_t <= "000000101";
+    wait for 40 ns;
     --
-    -- -- reset
-    -- rst_t <= '1';
-    -- wait for 20 ns;
-    --
-    -- -- add again 1 to register 1
-    -- rst_t <= '0';
-    -- i_val_acc_t <= '1';
-    -- r_s_t <= "01";
-    -- input_t <= "000000001";
-    -- wait for 20 ns;
+    -- reset
+    i_val_acc_t <= '0';
+    rst_t <= '1';
+    wait for 40 ns;
 
     wait;
   end process;
