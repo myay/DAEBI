@@ -3,21 +3,25 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 entity accumulator is
+  generic(
+    input_width: integer;
+    data_width: integer
+  );
   port(
     i_val_acc   : std_logic; -- Signals whether accumulator is ready to receive new input data
     reset       : in std_logic; -- Reset signal
     clk         : in std_logic; -- Clock signal
-    i_data      : in std_logic_vector(8 downto 0); -- Input data
-    o_data      : out std_logic_vector(31 downto 0); -- Output data
+    i_data      : in std_logic_vector(input_width-1 downto 0); -- Input data
+    o_data      : out std_logic_vector(data_width-1 downto 0); -- Output data
     o_val_acc   : out std_logic -- Signal for completion of computations
   );
 end accumulator;
 
 architecture rtl of accumulator is
-  signal first_dff        : std_logic_vector(8 downto 0) := (others => '0'); -- Buffer for the input data
+  signal first_dff        : std_logic_vector(input_width-1 downto 0) := (others => '0'); -- Buffer for the input data
   signal delay_val        : std_logic_vector(1 downto 0) := (others => '0'); -- Singal for pipeline progress
-  signal o_acc            : std_logic_vector(31 downto 0) := (others => '0'); -- Accumulation register
-  signal o_reg_acc        : std_logic_vector(31 downto 0) := (others => '0'); -- Buffer for the output data
+  signal o_acc            : std_logic_vector(data_width-1 downto 0) := (others => '0'); -- Accumulation register
+  signal o_reg_acc        : std_logic_vector(data_width-1 downto 0) := (others => '0'); -- Buffer for the output data
 begin
 
   -- Load input data into first_dff (input buffer)

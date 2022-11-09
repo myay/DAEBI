@@ -9,12 +9,16 @@ end accumulator_tb;
 
 architecture test of accumulator_tb is
   component accumulator
+    generic(
+      input_width: integer;
+      data_width: integer
+    );
     port(
       i_val_acc   : std_logic; -- Signals whether accumulator is ready to receive new input data
       reset       : in std_logic; -- Reset signal
       clk         : in std_logic; -- Clock signal
-      i_data      : in std_logic_vector(8 downto 0); -- Input data
-      o_data      : out std_logic_vector(31 downto 0); -- Output data
+      i_data      : in std_logic_vector(input_width-1 downto 0); -- Input data
+      o_data      : out std_logic_vector(data_width-1 downto 0); -- Output data
       o_val_acc   : out std_logic -- Signal for completion of computations
     );
   end component;
@@ -29,6 +33,10 @@ signal output_t: std_logic_vector(31 downto 0);
 
 begin
   accumulator_test: accumulator
+    generic map(
+      input_width => 9,
+      data_width => 32
+    )
     port map(
       i_val_acc => i_val_acc_t,
       clk => clk_t,
@@ -45,6 +53,10 @@ begin
 
     i_val_acc_t <= '1';
     input_t <= "000000001";
+    wait for 20 ns;
+
+    i_val_acc_t <= '1';
+    input_t <= "000000011";
     wait for 20 ns;
 
     wait;
