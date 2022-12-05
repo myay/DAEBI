@@ -19,7 +19,7 @@ end accumulator;
 
 architecture rtl of accumulator is
   signal first_dff        : std_logic_vector(input_width-1 downto 0) := (others => '0'); -- Buffer for the input data
-  signal delay_val        : std_logic_vector(1 downto 0) := (others => '0'); -- Singal for pipeline progress
+  signal delay_val        : std_logic_vector(2 downto 0) := (others => '0'); -- Singal for pipeline progress
   signal o_acc            : std_logic_vector(data_width-1 downto 0) := (others => '0'); -- Accumulation register
   signal o_reg_acc        : std_logic_vector(data_width-1 downto 0) := (others => '0'); -- Buffer for the output data
   -- signal token_add        : std_logic := '0';
@@ -58,7 +58,9 @@ begin
       if reset = '1' then
         o_reg_acc <= (others => '0');
       else
-        o_reg_acc <= o_acc;
+        if delay_val(1) = '1' then
+          o_reg_acc <= o_acc;
+        end if;
       end if;
     end if;
   end process;
@@ -66,8 +68,8 @@ begin
   -- Determine delay through pipeline to set flag for finished computations
   process(clk) begin
     if rising_edge(clk) then
-      delay_val <= delay_val(0) & i_val_acc;
-      if delay_val(1) = '1' then
+      delay_val <= delay_val(1 downto 0) & i_val_acc;
+      if delay_val(2) = '1' then
         o_val_acc <= '1';
       else
         o_val_acc <= '0';

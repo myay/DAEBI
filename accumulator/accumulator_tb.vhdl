@@ -55,6 +55,10 @@ begin
     input_t <= "000000001";
     wait for 20 ns;
 
+    i_val_acc_t <= '0';
+    -- input_t <= "000000000";
+    wait for 20 ns;
+
     -- i_val_acc_t <= '0';
     -- wait for 1 ns;
     i_val_acc_t <= '1';
