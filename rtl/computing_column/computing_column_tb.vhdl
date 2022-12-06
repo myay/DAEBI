@@ -9,11 +9,12 @@ end computing_column_tb;
 
 architecture test of computing_column_tb is
   component computing_column
+    generic(nr_xnor_gates: integer);
     port(
       clk           : in std_logic;
       rst           : in std_logic;
-      xnor_inputs_1 : in std_logic_vector(xnor_gates_per_column-1 downto 0); -- First inputs
-      xnor_inputs_2 : in std_logic_vector(xnor_gates_per_column-1 downto 0); -- Second inputs
+      xnor_inputs_1 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- First inputs
+      xnor_inputs_2 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Second inputs
       o_data_cc     : out std_logic_vector(31 downto 0) -- Output data
     );
   end component;
@@ -26,10 +27,11 @@ signal output_cc: std_logic_vector(31 downto 0);
 signal clk_t: std_logic := '0';
 constant clk_period : time := 2 ns;
 shared variable i: integer := 0;
-shared variable max_clock_cyles: integer := 20;
+shared variable max_clock_cyles: integer := 40;
 
 begin
   computing_column_test: computing_column
+    generic map (nr_xnor_gates => 64)
     port map(
       clk => clk_t,
       rst => rst_t,
@@ -41,6 +43,10 @@ begin
   process begin
     input_1 <= "1010101010101010101010101010101010101010101010101010101010101010";
     input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
+    wait for 50 ns;
+
+    input_1 <= "1010101010101010101010101010101010101010101010101010101010101011";
+    input_2 <= "1010101010101010101010101010101010101010101010101010101010101011";
     wait for 50 ns;
     wait;
   end process;
