@@ -15,5 +15,7 @@ MODULE = xnor_test
 
 SIM_ARGS=--vcd=anyname.vcd
 
+EXTRA_ARGS = --std=08
+
 # include cocotb's make rules to take care of the simulator setup
 include $(shell cocotb-config --makefiles)/Makefile.sim
