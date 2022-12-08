@@ -11,6 +11,7 @@ entity regfile is
   port(
     clk: in std_logic;
     we3: in std_logic;
+    reset: in std_logic;
     a1: in std_logic_vector(addr_width-1 downto 0);
     a3: in std_logic_vector(addr_width-1 downto 0);
     wd3: in std_logic_vector(data_width-1 downto 0);
@@ -27,6 +28,10 @@ begin
     if rising_edge(clk) then
       if we3 = '1' then
         mem(to_integer(unsigned(a3))) <= wd3;
+      end if;
+      -- Reset all register contents
+      if reset = '1' then
+        mem <= (others => (others => '0'));
       end if;
     end if;
   end process;

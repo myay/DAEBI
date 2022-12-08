@@ -9,7 +9,7 @@ import random
 # nr_regs = int(cocotb.top.nr_regs)
 
 data_width = 4
-addr_width = 3
+addr_width = 2
 nr_regs = 4
 
 max_val_data = (2**(data_width))-1
@@ -25,7 +25,7 @@ async def generate_clock(dut):
         dut.clk.value = 1
         await Timer(1, units="ns")
 
-# random test
+# Random test
 @cocotb.test()
 async def regfile_random_test(dut):
     """Test Regfile"""
@@ -33,8 +33,10 @@ async def regfile_random_test(dut):
     random.seed(1)
     test_reps = 1000
     dut.a1.value = int(0)
+    dut.reset.value = int(0)
     await cocotb.start(generate_clock(dut))
 
+    # Test the storing and reading of data
     for i in range(0, test_reps):
         value_to_store = random.randint(0, max_val_data)
         addr_to_store_value = random.randint(0, addr_width)
@@ -57,3 +59,13 @@ async def regfile_random_test(dut):
         await Timer(2, units="ns")
         returned_value = int(dut.rd1.value)
         assert returned_value == value_to_store
+
+    # Test the reset
+    dut.reset.value = int(1)
+    await Timer(2, units="ns")
+    # Read all registers and test whether they are all zero
+    for i in range(0, max_val_addr+1):
+        dut.a1.value = int(i)
+        await Timer(2, units="ns")
+        returned_value = int(dut.rd1.value)
+        assert returned_value == int(0)
