@@ -40,8 +40,6 @@ async def regfile_random_test(dut):
     for i in range(0, test_reps):
         value_to_store = random.randint(0, max_val_data)
         addr_to_store_value = random.randint(0, addr_width)
-        # print("val", value_to_store)
-        # print("addr", addr_to_store_value)
 
         # Write to register
         # Apply random address to port a3

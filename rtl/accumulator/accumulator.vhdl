@@ -22,7 +22,7 @@ architecture rtl of accumulator is
   signal delay_val        : std_logic_vector(2 downto 0) := (others => '0'); -- Singal for pipeline progress
   signal o_acc            : std_logic_vector(data_width-1 downto 0) := (others => '0'); -- Accumulation register
   signal o_reg_acc        : std_logic_vector(data_width-1 downto 0) := (others => '0'); -- Buffer for the output data
-  -- signal token_add        : std_logic := '0';
+  signal token_add        : std_logic := '0';
 begin
 
   -- Load input data into first_dff (input buffer)
@@ -36,16 +36,21 @@ begin
     end if;
   end process;
 
-  -- -- get input token only when i_val_acc changes
-  -- process(i_val_acc) begin
-  --   token_add <= i_val_acc;
-  -- end process;
+  -- Get token from input pin and set it to zero (consumed) one clock cycle later, so that no more additions are performed
+  process(clk) begin
+    if rising_edge(clk) then
+      token_add <= i_val_acc;
+      if delay_val(0) = '1' then
+        token_add <= '0';
+      end if;
+    end if;
+  end process;
 
   -- Accumulate input value in o_acc (accumulation register), only when in the second pipline stage and only when input token is available
   process(clk) begin
     if rising_edge(clk) then
       if delay_val(0) = '1' then
-        if i_val_acc = '1' then
+        if token_add = '1' then
           o_acc <= std_logic_vector(unsigned(o_reg_acc) + unsigned(first_dff));
         end if;
       end if;
