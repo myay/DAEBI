@@ -25,28 +25,33 @@ async def accumulator_random_test(dut):
     """Test Accumulator"""
 
     random.seed(1)
-    test_reps = 1
+    test_reps = 1000
     await cocotb.start(generate_clock(dut))
+    acc_reg = 0
     # Set reset to zero
     dut.reset.value = int(0)
 
     for i in range(0, test_reps):
-        acc_reg = 0
         input_sample = random.randint(0, max_val_input)
+
+        # Calculate Python-based accumulation
         acc_reg += input_sample
         acc_reg = acc_reg & and_mask
 
         # Apply random value to accumulator
         dut.i_data.value = input_sample
-        # Signal that accumulator can start
+        # Signal that accumulator can start processing input
         dut.i_val_acc.value = int(1)
+        await Timer(2, units="ns")
+        # Set input signal to zero (only one rectangle signal needed)
+        dut.i_val_acc.value = int(0)
 
         # Wait for accumulator to signal the completion
         # await Timer(8, units="ns")
         await RisingEdge(dut.o_val_acc)
-        dut_result = dut.o_data.value
+        dut_result = int(dut.o_data.value)
         assert dut_result == acc_reg, "Wrong addition"
 
-        # reset input state
+        # Reset input state
         dut.i_val_acc.value = int(0)
         await Timer(2, units="ns")
