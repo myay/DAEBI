@@ -54,3 +54,10 @@ async def accumulator_random_test(dut):
         dut_result = int(dut.o_data.value)
         assert dut_result == acc_reg, "Wrong addition"
         await Timer(2, units="ns")
+
+
+    # Test reset
+    dut.reset.value = int(1)
+    await Timer(100, units="ns")
+    dut_result = int(dut.o_data.value)
+    assert dut_result == int(0), "Reset did not work as expected"

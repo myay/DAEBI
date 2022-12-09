@@ -73,11 +73,16 @@ begin
   -- Determine delay through pipeline to set flag for finished computations
   process(clk) begin
     if rising_edge(clk) then
-      delay_val <= delay_val(1 downto 0) & i_val_acc;
-      if delay_val(2) = '1' then
-        o_val_acc <= '1';
-      else
+      if reset = '1' then
+        delay_val <= (others => '0');
         o_val_acc <= '0';
+      else
+        delay_val <= delay_val(1 downto 0) & i_val_acc;
+        if delay_val(2) = '1' then
+          o_val_acc <= '1';
+        else
+          o_val_acc <= '0';
+        end if;
       end if;
     end if;
   end process;
