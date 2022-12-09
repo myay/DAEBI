@@ -22,11 +22,12 @@ end accumulator_multiregs_s;
 
 architecture bhv of accumulator_multiregs_s is
   signal tmp: std_logic_vector(data_width-1 downto 0) := (others => '0');
-  signal delay_val: std_logic_vector(1 downto 0) := (others => '0');
+  signal delay_val: std_logic_vector(2 downto 0) := (others => '0');
   -- Variables for regfile
   signal we3_am, reset_am: std_logic;
   signal a1_am, a3_am: std_logic_vector(addr_width-1 downto 0);
   signal wd3_am, rd1_am: std_logic_vector(data_width-1 downto 0);
+  signal token_add: std_logic := '0';
 begin
 
   -- Generate register file
@@ -55,13 +56,23 @@ begin
     end if;
   end process;
 
+  -- Get token from input pin and set it to zero (consumed) one clock cycle later, so that no more additions are performed
+  process(clk) begin
+    if rising_edge(clk) then
+      token_add <= i_val_acc;
+      if delay_val(1) = '1' then
+        token_add <= '0';
+      end if;
+    end if;
+  end process;
+
   -- Perform the accumulation (second clock cycle)
   process (clk) begin
     if rising_edge(clk) then
       if reset = '1' then
         tmp <= (others => '0');
       else
-        if delay_val(0) = '1' then
+        if ((delay_val(1) = '1') and (token_add = '1')) then
           tmp <= std_logic_vector(unsigned(rd1_am) + unsigned(i_data));
         end if;
       end if;
@@ -75,7 +86,7 @@ begin
         we3_am <= '0';
         o_data <= (others => '0');
       else
-        if delay_val(1) = '1' then
+        if delay_val(2) = '1' then
           we3_am <= '1';
           a3_am <= a1_am;
           wd3_am <= tmp;
@@ -93,8 +104,8 @@ begin
       if reset = '1' then
         delay_val <= (others => '0');
       else
-        delay_val <= delay_val(0) & i_val_acc;
-        if delay_val(1) = '1' then
+        delay_val <= delay_val(1 downto 0) & i_val_acc;
+        if delay_val(2) = '1' then
           o_val_acc <= '1';
         else
           o_val_acc <= '0';
