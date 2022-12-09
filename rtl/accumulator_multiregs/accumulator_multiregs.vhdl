@@ -30,7 +30,7 @@ architecture rtl of accumulator_multiregs is
   -- signal r_sel            : std_logic_vector(1 downto 0);
 
   -- Variables for regfile
-  signal we3_am: std_logic;
+  signal we3_am, reset_am: std_logic;
   signal a1_am, a3_am: std_logic_vector(addr_width-1 downto 0);
   signal wd3_am, rd1_am: std_logic_vector(data_width-1 downto 0);
 begin
@@ -45,6 +45,7 @@ begin
     port map(
       clk => clk,
       we3 => we3_am,
+      reset => reset_am,
       a1 => a1_am,
       a3 => a3_am,
       wd3 => wd3_am,
