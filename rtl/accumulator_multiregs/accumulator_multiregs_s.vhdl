@@ -50,6 +50,7 @@ begin
   -- Load index into a1_am to select register for value retrieval (first clock cycle)
   process(clk) begin
     if rising_edge(clk) then
+      reset_am <= reset;
       if i_val_acc = '1' then
         a1_am <= r_s;
       end if;

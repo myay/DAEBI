@@ -54,3 +54,13 @@ async def accumulator_multiregs_s_random_test(dut):
         returned_value = int(dut.o_data.value)
         await Timer(4, units="ns")
         assert returned_value == regs_py[addr_to_store_value]
+
+    # Test the reset
+    dut.reset.value = int(1)
+    await Timer(2, units="ns")
+    # Read all registers and test whether they are all zero
+    for i in range(0, max_val_addr+1):
+        dut.r_s.value = int(i)
+        await Timer(4, units="ns")
+        returned_value = int(dut.o_data.value)
+        assert returned_value == int(0)
