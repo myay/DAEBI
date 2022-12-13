@@ -8,7 +8,7 @@ def main():
 
 	parser = argparse.ArgumentParser(description='Generate vhdl file for a popcount unit.')
 	parser.add_argument("-i", "--bits_in", help="number of input bits (has to be a power of 2), default 64", type=int, default=64)
-	parser.add_argument("-o", "--bits_out", help="number of output bits (has to be greater than log2 of input bits), default 14", type=int, default=14)
+	parser.add_argument("-o", "--bits_out", help="number of output bits (has to be greater than log2 of input bits), default 6", type=int, default=6)
 	parser.add_argument('-tb', '--testbench', help="generate a testbench for the popcount unit", action='store_true')
 	# parser.add_argument("-n", "--name", help="name of the output file ", type=string, default='popcount')
 	args = parser.parse_args()
@@ -123,9 +123,9 @@ entity popcount is
 """
 
 	# ports
-	output_size = bits_out
-	if bits_out < math.log2(bits):
-		output_size = math.log2(bits)
+	output_size = math.log2(bits)
+	# if bits_out < math.log2(bits):
+		# output_size = math.log2(bits)
 	output += """  port(
     i_val       : in std_logic; -- whether it is ready to compute
     clk         : in std_logic;
@@ -166,10 +166,10 @@ architecture rtl of popcount is
   signal mem1_o       : std_logic_vector({bits1} downto 0);
 
   signal dff_stream   : std_logic_vector({input_bits} downto 0); -- Vector for inputs
-  signal P           : std_logic_vector(13 downto 0):=(others => '0'); -- Vector for final result
+  signal P           : std_logic_vector({output_size} downto 0):=(others => '0'); -- Vector for final result
   signal delay_val    : std_logic_vector({delay} downto 0):= (others => '0'); --Delay signal
 
-""".format(delay=delay_amount+1,input_bits=bits-1,bits1=bit_amount-1)
+""".format(delay=delay_amount+1,input_bits=bits-1,bits1=bit_amount-1,output_size=output_size-1)
 	
 	# connecting input signal
 	alternating_input = "10"*(int(bits/2))
@@ -266,9 +266,8 @@ architecture rtl of popcount is
 	
 	output += """
 -------------------------------------------
-  --Extend the {bits} Bits Vector to {bits_out} Bits Vector
   process(mem1_o) begin
-    P <= "{zero_extend_string}" & mem1_o({bits1} downto 0) ;
+    P <= mem1_o({bits1} downto 0) ;
   end process;
 
   --Calculate the Finish Signal with help of delay Signal
@@ -300,7 +299,7 @@ architecture rtl of popcount is
       end if;
   end process;
 
-end rtl;""".format(delay=delay_amount,bits=bit_amount,bits1=bit_amount-1,bits_out=bits_out,zero_extend_string="0"*(bits_out-bit_amount))
+end rtl;""".format(delay=delay_amount,bits=bit_amount,bits1=output_size)
 		
 	
 	with open('popcount.vhdl', 'w') as file:
