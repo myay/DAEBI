@@ -24,7 +24,7 @@ signal clk_cc : std_logic; -- Clock signal
 
 -- Signals for xnor array
 signal in_cc_1 : std_logic_vector(nr_xnor_gates-1 downto 0) := (others => '0'); -- Input 1 for xnor array
-signal in_cc_2 : std_logic_vector(nr_xnor_gates-1 downto 0) := (others => '0'); -- Input 2 for xnor array
+signal in_cc_2 : std_logic_vector(nr_xnor_gates-1 downto 0) := (others => '1'); -- Input 2 for xnor array
 signal o_data_xnor : std_logic_vector(nr_xnor_gates-1 downto 0) := (others => '0'); -- Output of xnor array
 
 -- Signals for popcount unit
