@@ -1,14 +1,14 @@
 library IEEE; 
 use IEEE.STD_LOGIC_1164.ALL; 
 use ieee.numeric_std.all; 
-library work;
-use work.pkg.all;
+-- library work;
+-- use work.pkg.all;
  
 entity controller_vm is 
 	generic(
-		nr_xnor_gates        : integer;		-- Number of XNOR gates used in each computing column
-		nr_computing_columns : integer;     -- Number of computing columns used in this controller
-		acc_data_width       : integer		-- Width of the output of each computing column
+		nr_xnor_gates        : integer := 64;		-- Number of XNOR gates used in each computing column
+		nr_computing_columns : integer := 64;       -- Number of computing columns used in this controller
+		acc_data_width       : integer := 16		-- Width of the output of each computing column
 	);
     port (  
         clk            : in std_logic; 								
@@ -16,8 +16,9 @@ entity controller_vm is
 		i_valid        : in std_logic;									 -- Only calculate values while this signal is set
 		i_inputs       : in std_logic_vector( nr_xnor_gates-1 downto 0); -- Data input for input values
 		i_weights      : in std_logic_vector( nr_xnor_gates-1 downto 0); -- Data input for weight values
-		o_addr_inputs  : out std_logic_vector(31 downto 0);				 -- Address output for input memory
-		o_addr_weights : out std_logic_vector(31 downto 0)				 -- Address output for weight memory
+		-- o_addr_inputs  : out std_logic_vector(31 downto 0);				 -- Address output for input memory
+		-- o_addr_weights : out std_logic_vector(31 downto 0);				 -- Address output for weight memory
+		o_result       : out std_logic_vector( acc_data_width-1 downto 0)
         ); 
     end controller_vm; 
  
@@ -34,11 +35,11 @@ begin
  
  
 	-- Calculate address for input (currently unused)
-	o_addr_inputs <= (others => '0');
+	-- o_addr_inputs <= (others => '0');
 	
 	
 	-- Calculate address for weights (currently unused)
-	o_addr_weights <= (others => '0');
+	-- o_addr_weights <= (others => '0');
 	
 	
 	-- control data flow
@@ -54,6 +55,9 @@ begin
 					if i = cnt then
 						mem_w(cnt) <= i_weights;
 						mem_i(cnt) <= i_inputs;
+						
+						-- test output for vivado testing
+						o_result <= mem_o(cnt);
 					else
 						-- xnor will calculate 0 -> idle all other computing columns
 						mem_w(i) <= (others => '0');
@@ -67,6 +71,7 @@ begin
 				else
 					cnt <= 0;
 				end if;
+				
 			else
 				-- Idle all computing columns
 				for i in 0 to nr_computing_columns-1 loop

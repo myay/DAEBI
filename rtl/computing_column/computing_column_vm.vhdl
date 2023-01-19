@@ -1,8 +1,9 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library work;
-use work.pkg.all;
+-- currently not used and causes problems with synthesis without further additions
+-- library work;
+-- use work.pkg.all;
 
 entity computing_column_vm is
   generic(nr_xnor_gates: integer;
