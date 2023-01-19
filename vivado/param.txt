@@ -1,0 +1,8 @@
+# number of registers per accumulator
+64
+# number of crossbars
+64
+# number of xnor gates
+64
+# size of popcount unit (bits)
+64
