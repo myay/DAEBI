@@ -12,7 +12,7 @@ entity popcount is
     rst         : in std_logic;
     stream_i    : in std_logic_vector(63 downto 0);	--input Vector
     o_val       : out std_logic; --Finish Signal
-    stream_o    : out std_logic_vector(13 downto 0)	--output Result (how many ones in the input)
+    stream_o    : out std_logic_vector(6 downto 0)	--output Result (how many ones in the input)
   );
 end popcount;
 
@@ -44,7 +44,7 @@ architecture rtl of popcount is
   signal mem1_o       : std_logic_vector(6 downto 0);
 
   signal dff_stream   : std_logic_vector(63 downto 0); -- Vector for inputs
-  signal P           : std_logic_vector(13 downto 0):=(others => '0'); -- Vector for final result
+  signal P           : std_logic_vector(6 downto 0):=(others => '0'); -- Vector for final result
   signal delay_val    : std_logic_vector(8 downto 0):= (others => '0'); --Delay signal
 
 begin
@@ -171,9 +171,8 @@ begin
       q => mem1_o
     );
 -------------------------------------------
-  --Extend the 7 Bits Vector to 14 Bits Vector
   process(mem1_o) begin
-    P <= "0000000" & mem1_o(6 downto 0) ;
+    P <= mem1_o;
   end process;
 
   --Calculate the Finish Signal with help of delay Signal

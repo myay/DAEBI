@@ -6,8 +6,11 @@ use ieee.std_logic_1164.all;
 -- use work.pkg.all;
 
 entity computing_column_vm is
-  generic(nr_xnor_gates: integer;
-		  acc_data_width: integer);
+  generic(
+    nr_xnor_gates: integer;
+    acc_data_width: integer;
+    nr_popc_bits_o: integer
+  );
   port(
     clk           : in std_logic;
     rst           : in std_logic;
@@ -19,7 +22,7 @@ end computing_column_vm;
 
 architecture rtl of computing_column_vm is
 
-constant nr_popc_bits_o : integer := 7; -- nr of output bits of popcount unit, -> calculate using log2
+-- constant nr_popc_bits_o : integer := 7; -- nr of output bits of popcount unit, -> calculate using log2
 
 signal clk_cc : std_logic; -- Clock signal
 
@@ -81,8 +84,8 @@ begin
 		rst_acc <= rst_pipe(8);
 	end if;
   end process;
-	
-	
+
+
   process(clk) begin
     -- Update clock signal of cc
     clk_cc <= clk;
