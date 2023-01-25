@@ -9,8 +9,11 @@ end computing_column_vm_tb;
 
 architecture test of computing_column_vm_tb is
   component computing_column_vm
-	  generic(nr_xnor_gates: integer;
-			  acc_data_width: integer);
+    generic(
+      nr_xnor_gates: integer;
+      acc_data_width: integer;
+      nr_popc_bits_o: integer
+    );
 	  port(
 		clk           : in std_logic;
 		rst           : in std_logic;
@@ -33,7 +36,9 @@ shared variable max_clock_cyles: integer := 40;
 begin
   computing_column_test: computing_column_vm
     generic map (nr_xnor_gates => 64,
-				 acc_data_width => 32)
+				 acc_data_width => 32,
+         nr_popc_bits_o => 7
+    )
     port map(
       clk => clk_t,
       rst => rst_t,
@@ -43,31 +48,31 @@ begin
     );
 
   process begin
-  
+
   -- input (cycle 0) to output (cycle 10) -> 10 cycles
-  
+
     -- reset
 	input_1 <= "1010101010101010101010101010101010101010101010101010101010101010";
     input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
 	rst_t <= '1';
     wait for 2 ns;
-	
+
     -- add 1
     input_1 <= "0101010111010101010101010101010101010101010101010101010101010101";
     input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
 	rst_t <= '0';
     wait for 2 ns;
-	
+
 	-- add 2
 	input_1 <= "0101010111010101010101010101010001010101010101010101010101010101";
     input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
     wait for 2 ns;
-	
+
 	-- add 64
 	input_1 <= "1010101010101010101010101010101010101010101010101010101010101010";
     input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
     wait for 2 ns;
-	
+
 	-- reset
 	rst_t <= '1';
     wait for 2 ns;
