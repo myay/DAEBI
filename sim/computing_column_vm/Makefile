@@ -14,7 +14,7 @@ VHDL_SOURCES += $(PWD)/../../rtl/adder/adder.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/register_dff/register_dff.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/accumulator/accumulator_s.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/popcount/popcount.vhdl
-VHDL_SOURCES += $(PWD)/../../rtl/computing_column/computing_column_vm.vhdl
+VHDL_SOURCES += $(PWD)/../../rtl/computing_column_vm/computing_column_vm.vhdl
 
 TOPLEVEL = computing_column_vm
 
