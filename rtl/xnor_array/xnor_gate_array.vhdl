@@ -11,7 +11,6 @@ entity xnor_gate_array is
 end xnor_gate_array;
 
 architecture rtl of xnor_gate_array is
-signal xnor_o : std_logic_vector(nr_xnor_gates-1 downto 0);
 begin
   -- Create a certain number of XNOR gates, number specified in xnor_gates_per_column
   xnor_gen: for i in 0 to nr_xnor_gates-1 generate
