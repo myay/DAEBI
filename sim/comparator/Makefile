@@ -6,11 +6,11 @@ bit_width = 16
 SIM = ghdl
 TOPLEVEL_LANG ?= vhdl
 
-VHDL_SOURCES += $(PWD)/../../rtl/comparator/comparator.vhdl
+VHDL_SOURCES += $(PWD)/../../rtl/comparator/comparator_clocked.vhdl
 # use VHDL_SOURCES for VHDL files
 
 # TOPLEVEL is the name of the toplevel module in your Verilog or VHDL file
-TOPLEVEL = comparator
+TOPLEVEL = comparator_clocked
 
 # MODULE is the basename of the Python test file
 MODULE = comparator_test
