@@ -13,7 +13,7 @@ end comparator;
 
 architecture behavioral of comparator is
 begin
-  process(x) begin
+  process(x, threshold) begin
     if x < threshold then
       less <= '1';
       eq <= '0';
