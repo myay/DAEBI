@@ -16,7 +16,10 @@ entity computing_column_vm is
     rst           : in std_logic;
     xnor_inputs_1 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- First inputs
     xnor_inputs_2 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Second inputs
-    o_data_cc     : out std_logic_vector(acc_data_width-1 downto 0) -- Output data
+    threshold_in  : in std_logic_vector(acc_data_width-1 downto 0); -- Threshold data
+    o_data_cc     : out std_logic_vector(acc_data_width-1 downto 0); -- Output data
+    less_cc : out std_logic;
+    eq_cc : out std_logic
   );
 end computing_column_vm;
 
@@ -42,6 +45,10 @@ signal clk_acc: std_logic; -- Clock for accumulator
 signal i_data_acc : std_logic_vector(nr_popc_bits_o-1 downto 0) := (others => '0');
 signal o_data_acc : std_logic_vector(acc_data_width-1 downto 0) := (others => '0'); -- Output for accumulator
 signal rst_pipe : std_logic_vector(8 downto 0) := (others => '0');
+
+-- Signals for comparator
+signal threshold_cc : std_logic_vector(acc_data_width-1 downto 0) := (others => '0'); -- Output for accumulator
+
 
 begin
   -- Instantiate xnor array
@@ -77,31 +84,42 @@ begin
       o_data => o_data_acc
     );
 
-  -- store reset signal in pipeline to reach accumulator at the right timing
-  process(clk) begin
-	if rising_edge(clk) then
-		rst_pipe <= rst_pipe(7 downto 0) & rst;
-		rst_acc <= rst_pipe(8);
-	end if;
-  end process;
+  -- Instantiate comparator
+  inst_comparator : entity work.comparator(bhv)
+    generic map(bit_width => acc_data_width)
+    port map(
+      clk => clk_cc,
+      x => o_data_acc,
+      threshold => threshold_cc,
+      less => less_cc,
+      eq => eq_cc
+    );
 
+  -- Store reset signal in pipeline to reach accumulator at the right timing
+  process(clk) begin
+    if rising_edge(clk) then
+      rst_pipe <= rst_pipe(7 downto 0) & rst;
+      rst_acc <= rst_pipe(8);
+    end if;
+  end process;
 
   process(clk) begin
     -- Update clock signal of cc
     clk_cc <= clk;
-	-- Update clock signal of accumulator
-	clk_acc <= clk and o_val_popc;
+    -- Update clock signal of accumulator
+    clk_acc <= clk and o_val_popc;
     if rising_edge(clk) then
       -- Assign inputs to input buffers
       in_cc_1 <= xnor_inputs_1;
       in_cc_2 <= xnor_inputs_2;
+      threshold_cc <= threshold_in;
       -- Assign output of popcount value to input of accumulator
       if o_val_popc = '1' then
         i_data_acc <= o_data_popc;
       end if;
       -- Assign output of accumulator to output pins of cc
       -- if o_val_acc = '1' then
-        o_data_cc <= o_data_acc;
+      o_data_cc <= o_data_acc;
       -- end if;
     end if;
   end process;

@@ -14,19 +14,26 @@ architecture test of computing_column_vm_tb is
       acc_data_width: integer;
       nr_popc_bits_o: integer
     );
-	  port(
-		clk           : in std_logic;
-		rst           : in std_logic;
-		xnor_inputs_1 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- First inputs
-		xnor_inputs_2 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Second inputs
-		o_data_cc     : out std_logic_vector(acc_data_width-1 downto 0) -- Output data
-	  );
+    port(
+      clk           : in std_logic;
+      rst           : in std_logic;
+      xnor_inputs_1 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- First inputs
+      xnor_inputs_2 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Second inputs
+      threshold_in  : in std_logic_vector(acc_data_width-1 downto 0); -- Threshold data
+      o_data_cc     : out std_logic_vector(acc_data_width-1 downto 0); -- Output data
+      less_cc : out std_logic;
+      eq_cc : out std_logic
+    );
   end component;
 
+-- Inputs
 signal rst_t: std_logic;
 signal input_1: std_logic_vector(63 downto 0);
 signal input_2: std_logic_vector(63 downto 0);
+signal input_threshold: std_logic_vector(31 downto 0);
+-- Outputs
 signal output_cc: std_logic_vector(31 downto 0);
+signal less_cc_t, eq_cc_t: std_logic;
 
 signal clk_t: std_logic := '0';
 constant clk_period : time := 2 ns;
@@ -35,16 +42,20 @@ shared variable max_clock_cyles: integer := 40;
 
 begin
   computing_column_test: computing_column_vm
-    generic map (nr_xnor_gates => 64,
-				 acc_data_width => 32,
-         nr_popc_bits_o => 7
+    generic map(
+      nr_xnor_gates => 64,
+      acc_data_width => 32,
+      nr_popc_bits_o => 7
     )
     port map(
       clk => clk_t,
       rst => rst_t,
       xnor_inputs_1 => input_1,
       xnor_inputs_2 => input_2,
-      o_data_cc => output_cc
+      threshold_in => input_threshold,
+      o_data_cc => output_cc,
+      less_cc => less_cc_t,
+      eq_cc => eq_cc_t
     );
 
   process begin
@@ -52,38 +63,39 @@ begin
   -- input (cycle 0) to output (cycle 10) -> 10 cycles
 
     -- reset
-	input_1 <= "1010101010101010101010101010101010101010101010101010101010101010";
-    input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
-	rst_t <= '1';
-    wait for 2 ns;
+  input_1 <= "1010101010101010101010101010101010101010101010101010101010101010";
+  input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
+  input_threshold <= x"0000000A";
+  rst_t <= '1';
+  wait for 2 ns;
 
     -- add 1
-    input_1 <= "0101010111010101010101010101010101010101010101010101010101010101";
-    input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
-	rst_t <= '0';
-    wait for 2 ns;
+  input_1 <= "0101010111010101010101010101010101010101010101010101010101010101";
+  input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
+  rst_t <= '0';
+  wait for 2 ns;
 
-	-- add 2
-	input_1 <= "0101010111010101010101010101010001010101010101010101010101010101";
-    input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
-    wait for 2 ns;
+  -- add 2
+  input_1 <= "0101010111010101010101010101010001010101010101010101010101010101";
+  input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
+  wait for 2 ns;
 
-	-- add 64
-	input_1 <= "1010101010101010101010101010101010101010101010101010101010101010";
-    input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
-    wait for 2 ns;
+  -- add 64
+  input_1 <= "1010101010101010101010101010101010101010101010101010101010101010";
+  input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
+  wait for 2 ns;
 
-	-- reset
-	rst_t <= '1';
-    wait for 2 ns;
-	rst_t <= '0';
-    wait for 2 ns;
+  -- reset
+  rst_t <= '1';
+  wait for 2 ns;
+  rst_t <= '0';
+  wait for 2 ns;
 
-	-- add 63
-    input_1 <= "1010101010101010101010101010101010101010101010101010101010101011";
-    input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
-    wait for 50 ns;
-    wait;
+  -- add 63
+  input_1 <= "1010101010101010101010101010101010101010101010101010101010101011";
+  input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
+  wait for 50 ns;
+  wait;
   end process;
 
   -- Clock generation process
