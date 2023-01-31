@@ -14,18 +14,6 @@ end comparator;
 
 architecture bhv of comparator is
 begin
-  process(clk) begin
-    if rising_edge(clk) then
-      if x < threshold then
-        less <= '1';
-        eq <= '0';
-      elsif x = threshold then
-        less <= '0';
-        eq <= '1';
-      else
-        less <= '0';
-        eq <= '0';
-      end if;
-     end if;
-   end process;
+  less <= '1' when x < threshold else '0';
+  eq <= '1' when x = threshold else '0';
 end bhv;
