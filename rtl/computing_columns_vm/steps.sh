@@ -7,6 +7,7 @@ ghdl -a --std=08 ../adder/adder.vhdl
 ghdl -a --std=08 ../register_dff/register_dff.vhdl
 ghdl -a --std=08 ../popcount/popcount.vhdl
 ghdl -a --std=08 ../accumulator/accumulator_s.vhdl
+ghdl -a --std=08 ../comparator/comparator.vhdl
 ghdl -a --std=08 ../computing_column_vm/computing_column_vm.vhdl
 ghdl -a --std=08 computing_columns_vm.vhdl
 ghdl -a --std=08 -frelaxed-rules computing_columns_vm_tb.vhdl

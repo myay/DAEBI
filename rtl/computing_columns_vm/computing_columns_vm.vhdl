@@ -24,7 +24,10 @@ entity computing_columns_vm is
     reset : in std_logic;
     xnor_inputs_1 : in array_2d(nr_computing_columns-1 downto 0)(nr_xnor_gates-1 downto 0); -- First inputs
     xnor_inputs_2 : in array_2d(nr_computing_columns-1 downto 0)(nr_xnor_gates-1 downto 0); -- Second inputs
-    o_result : out array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0) -- Outputs
+    thresholds_in : in array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0);
+    o_result : out array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0); -- Outputs
+    less_results : out std_logic_vector(nr_computing_columns-1 downto 0);
+    eq_results : out std_logic_vector(nr_computing_columns-1 downto 0)
   );
 end computing_columns_vm;
 
@@ -43,7 +46,10 @@ begin
         rst           => reset,
         xnor_inputs_1 => xnor_inputs_1(i),
         xnor_inputs_2 => xnor_inputs_2(i),
-        o_data_cc     => o_result(i)
+        threshold_in  => thresholds_in(i),
+        o_data_cc     => o_result(i),
+        less_cc       => less_results(i),
+        eq_cc         => eq_results(i)
       );
   end generate;
 end rtl;

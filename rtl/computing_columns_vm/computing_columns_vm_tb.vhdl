@@ -28,14 +28,21 @@ architecture test of computing_columns_vm_tb is
       reset : in std_logic;
       xnor_inputs_1 : in array_2d(nr_computing_columns-1 downto 0)(nr_xnor_gates-1 downto 0); -- First inputs
       xnor_inputs_2 : in array_2d(nr_computing_columns-1 downto 0)(nr_xnor_gates-1 downto 0); -- Second inputs
-      o_result : out array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0) -- Outputs
+      thresholds_in : in array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0);
+      o_result : out array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0); -- Outputs
+      less_results : out std_logic_vector(nr_computing_columns-1 downto 0);
+      eq_results : out std_logic_vector(nr_computing_columns-1 downto 0)
     );
   end component;
 
 signal rst_t: std_logic;
 signal input_1: array_2d(1 downto 0)(63 downto 0) := (others => (others => '0'));
 signal input_2: array_2d(1 downto 0)(63 downto 0) := (others => (others => '0'));
+signal input_thresholds: array_2d(1 downto 0)(15 downto 0) := (others => (others => '0'));
 signal output_cc: array_2d(1 downto 0)(15 downto 0) := (others => (others => '0'));
+
+signal less_t: std_logic_vector(1 downto 0);
+signal eq_t: std_logic_vector(1 downto 0);
 
 signal clk_t: std_logic := '0';
 constant clk_period : time := 2 ns;
@@ -55,7 +62,10 @@ begin
       reset => rst_t,
       xnor_inputs_1 => input_1,
       xnor_inputs_2 => input_2,
-      o_result => output_cc
+      thresholds_in => input_thresholds,
+      o_result => output_cc,
+      less_results => less_t,
+      eq_results => eq_t
     );
 
   process begin
@@ -67,6 +77,8 @@ begin
   input_2(0) <= "1010101010101010101010101010101010101010101010101010101010101010";
   input_1(1) <= "1010101010101010101010101010101010101010101010101010101010101010";
   input_2(1) <= "1010101010101010101010101010101010101010101010101010101010101010";
+  input_thresholds(0) <= "0000000000001111";
+  input_thresholds(1) <= "0000000000001111";
   rst_t <= '1';
   wait for 2 ns;
 
