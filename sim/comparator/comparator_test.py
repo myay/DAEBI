@@ -10,21 +10,11 @@ test_reps = 10000
 eq_factor = 10 # every (test_reps/eq_factor) iteration, test for equality
 cycles = test_reps
 
-async def generate_clock(dut):
-    """Generate clock pulses."""
-
-    for cycle in range(cycles):
-        dut.clk.value = 0
-        await Timer(1, units="ns")
-        dut.clk.value = 1
-        await Timer(1, units="ns")
-
 @cocotb.test()
 async def comparator_test(dut):
     """Test Comparator"""
 
     random.seed(1)
-    await cocotb.start(generate_clock(dut))
 
     for i in range(0, test_reps):
         if i % (test_reps/eq_factor) != 0:

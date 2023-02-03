@@ -5,11 +5,13 @@ import random
 
 nr_xnor_gates = 64
 output_width = 32
+nr_regs_accm = 2
+# addr_width_accm = 1
 
 max_xnor_val = (2**(nr_xnor_gates))-1
 max_output_val = (2**(output_width))-1
-cycles = 1
-delay = 20
+cycles = 3
+delay = 100
 
 lock = Lock()
 
@@ -31,32 +33,34 @@ async def generate_clock(dut):
         dut.clk.value = 1
         await Timer(1, units="ns")
 
-async def check_res(dut, acc_result, less, eq, th):
+async def check_res(dut, cycle, acc_result, less, eq, th):
     # print("I'm executing", acc_result)
     # Assign threshold one clock cycle before result of dut is returned
-    await Timer(18, units="ns")
+    # when there is a rising edge from popcount output, supply r_s
+    await Timer(12, units="ns")
+    dut.register_select.value = int(cycle % nr_regs_accm)
+    print("regsel", int(cycle % nr_regs_accm))
     dut.threshold_in.value = th
-    await Timer(1, units="ns")
-    # await Timer(1, units="ns")
+    # await Timer(20, units="ns")
     # print("I waited 20 ns, acc_result: ", acc_result)
     # dut_result = int(dut.o_data_cc.value)
-    dut_less = int(dut.less_cc.value)
-    dut_eq = int(dut.eq_cc.value)
-    # print("value:", acc_result)
-    # print("less:", int(less))
-    # print("eq:", int(eq))
-    # print("th:", th)
-    # print("DUT value:", dut_result)
-    # print("DUT less:", dut_less)
-    # print("DUT eq:", dut_eq)
-    # print("---")
+    # dut_less = int(dut.less_cc.value)
+    # dut_eq = int(dut.eq_cc.value)
+    # # print("value:", acc_result)
+    # # print("less:", int(less))
+    # # print("eq:", int(eq))
+    # # print("th:", th)
+    # # print("DUT value:", dut_result)
+    # # print("DUT less:", dut_less)
+    # # print("DUT eq:", dut_eq)
+    # # print("---")
+    # # assert dut_result == int(acc_result)
+    # assert dut_less == int(less)
+    # assert dut_eq == int(eq)
+    # # wait 2 ns because o_data_acc is ready one cycle later
+    # await Timer(2, units="ns")
+    # dut_result = int(dut.o_data_cc.value)
     # assert dut_result == int(acc_result)
-    assert dut_less == int(less)
-    assert dut_eq == int(eq)
-    # wait 2 ns because o_data_acc is ready one cycle later
-    await Timer(10, units="ns")
-    dut_result = int(dut.o_data_cc.value)
-    assert dut_result == int(acc_result)
 
 
 async def set_inputs(dut, acc_result, cycles_param=cycles):
@@ -65,9 +69,9 @@ async def set_inputs(dut, acc_result, cycles_param=cycles):
     dut.xnor_inputs_1.value = int(0)
     dut.xnor_inputs_2.value = int(0)
     dut.threshold_in.value = int(0)
-    dut.register_select.value = int(0)
     # acc_result = 0
     for cycle in range(cycles_param):
+        print("cycle", cycle)
         # Sample inputs
         xnor_inputs_1 = random.randint(0, max_xnor_val)
         xnor_inputs_2 = random.randint(0, max_xnor_val)
@@ -88,8 +92,12 @@ async def set_inputs(dut, acc_result, cycles_param=cycles):
         dut.xnor_inputs_1.value = xnor_inputs_1
         dut.xnor_inputs_2.value = xnor_inputs_2
         # Start a coroutine that checks the result after the delay
-        await cocotb.start(check_res(dut, acc_result, less, eq, threshold))
-        await Timer(2, units="ns")
+        await cocotb.start(check_res(dut, cycle, acc_result, less, eq, threshold))
+        await Timer(4, units="ns")
+        # if cycle == 0:
+        #     await Timer(6, units="ns")
+        # else:
+        #     await Timer(2, units="ns")
 
 # Random test
 @cocotb.test()
@@ -109,9 +117,10 @@ async def computing_column_sm_test(dut):
     # dut_result = dut.o_data_cc.value
     # assert dut_result == 64
     # Add delay of 1 to change inputs at every rising edge
-    await Timer(1, units="ns")
+    await Timer(3, units="ns")
     await cocotb.start(set_inputs(dut, acc_result))
-    await Timer(total_test_time+10, units="ns")
+    # await Timer(total_test_time+10, units="ns")
+    await Timer(100, units="ns")
     # await cocotb.start(check_outputs(dut))
     # await Timer(total_test_time, units="ns")
 

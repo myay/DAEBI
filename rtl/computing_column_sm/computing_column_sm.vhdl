@@ -92,7 +92,6 @@ begin
   inst_comparator : entity work.comparator(bhv)
     generic map(bit_width => acc_data_width)
     port map(
-      clk => clk_cc,
       x => o_data_acc,
       threshold => threshold_cc,
       less => less_cc,
