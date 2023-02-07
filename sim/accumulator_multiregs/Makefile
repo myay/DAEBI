@@ -14,7 +14,7 @@ VHDL_SOURCES += $(PWD)/../../rtl/accumulator_multiregs/accumulator_multiregs_s.v
 
 TOPLEVEL = accumulator_multiregs_s
 
-MODULE = accumulator_multiregs_s_test
+MODULE = accumulator_multiregs_s_test_notoken
 
 SIM_ARGS =--vcd=anyname.vcd
 SIM_ARGS += -ginput_width=$(input_width) -gdata_width=$(data_width) -gaddr_width=$(addr_width) -gnr_regs=$(nr_regs)
