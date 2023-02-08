@@ -10,11 +10,11 @@ SIM = ghdl
 TOPLEVEL_LANG ?= vhdl
 
 VHDL_SOURCES = $(PWD)/../../rtl/regfile/regfile.vhdl
-VHDL_SOURCES += $(PWD)/../../rtl/accumulator_multiregs/accumulator_multiregs_s.vhdl
+VHDL_SOURCES += $(PWD)/../../rtl/accumulator_multiregs/accumulator_multiregs.vhdl
 
-TOPLEVEL = accumulator_multiregs_s
+TOPLEVEL = accumulator_multiregs
 
-MODULE = accumulator_multiregs_s_test_notoken
+MODULE = accumulator_multiregs_test
 
 SIM_ARGS =--vcd=anyname.vcd
 SIM_ARGS += -ginput_width=$(input_width) -gdata_width=$(data_width) -gaddr_width=$(addr_width) -gnr_regs=$(nr_regs)

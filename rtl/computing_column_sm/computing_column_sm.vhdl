@@ -23,7 +23,7 @@ entity computing_column_sm is
 end computing_column_sm;
 
 architecture rtl of computing_column_sm is
--- For accumulator_multiregs_s
+-- For accumulator_multiregs
 -- nr_popc_bits_o is input_width
 -- acc_data_width is data_width
 -- new param: nr_regs
@@ -69,7 +69,7 @@ begin
       stream_o => o_data_popc
     );
 
-  inst_accumulator_multiregs: entity work.accumulator_multiregs_s(bhv)
+  inst_accumulator_multiregs: entity work.accumulator_multiregs(bhv)
     generic map(
       input_width => nr_popc_bits_o,
       data_width => acc_data_width,

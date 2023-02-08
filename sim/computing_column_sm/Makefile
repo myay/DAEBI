@@ -16,7 +16,7 @@ VHDL_SOURCES += $(PWD)/../../rtl/adder/adder.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/register_dff/register_dff.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/popcount/popcount.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/regfile/regfile.vhdl
-VHDL_SOURCES += $(PWD)/../../rtl/accumulator_multiregs/accumulator_multiregs_s.vhdl
+VHDL_SOURCES += $(PWD)/../../rtl/accumulator_multiregs/accumulator_multiregs.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/comparator/comparator.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/computing_column_sm/computing_column_sm.vhdl
 

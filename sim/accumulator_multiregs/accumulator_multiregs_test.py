@@ -70,7 +70,7 @@ async def set_inputs(dut, regs_py):
 
 # Random test
 @cocotb.test()
-async def accumulator_multiregs_s_random_test(dut):
+async def accumulator_multiregs_random_test(dut):
     """Test Acc Multiregs with no token"""
 
     random.seed(1)

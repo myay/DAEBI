@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity accumulator_multiregs_s is
+entity accumulator_multiregs is
   generic(
     input_width: integer;
     data_width: integer;
@@ -18,9 +18,9 @@ entity accumulator_multiregs_s is
     o_data    : out std_logic_vector(data_width-1 downto 0);
     o_val_acc : out std_logic
   );
-end accumulator_multiregs_s;
+end accumulator_multiregs;
 
-architecture bhv of accumulator_multiregs_s is
+architecture bhv of accumulator_multiregs is
   signal tmp: std_logic_vector(data_width-1 downto 0) := (others => '0');
   signal delay_val: std_logic_vector(1 downto 0) := (others => '0');
   -- Variables for regfile
