@@ -29,8 +29,6 @@ architecture rtl of computing_column_sm is
 -- new param: nr_regs
 -- new param: log2(nr_regs) is addr_width
 
-signal clk_cc : std_logic; -- Clock signal
-
 -- Signals for XNOR array
 signal in_cc_1 : std_logic_vector(nr_xnor_gates-1 downto 0) := (others => '0'); -- Input 1 for xnor array
 signal in_cc_2 : std_logic_vector(nr_xnor_gates-1 downto 0) := (others => '1'); -- Input 2 for xnor array
@@ -64,7 +62,7 @@ begin
   inst_popcount : entity work.popcount(rtl)
     port map(
       i_val => i_val_popc,
-      clk => clk_cc,
+      clk => clk,
       rst => rst_popc,
       stream_i => o_data_xnor,
       o_val => o_val_popc,
@@ -80,7 +78,7 @@ begin
     )
     port map(
       i_val_acc => o_val_popc,
-      clk => clk_cc,
+      clk => clk,
       reset => rst_acc,
       r_s => register_select,
       i_data => o_data_popc,
@@ -107,8 +105,6 @@ begin
   end process;
 
   process(clk) begin
-    -- Update clock signal of cc
-    clk_cc <= clk;
     -- Update clock signal of accumulator
     -- clk_acc <= clk;
     if rising_edge(clk) then

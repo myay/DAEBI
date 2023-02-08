@@ -3,8 +3,8 @@
 nr_xnor_gates = 64
 acc_data_width = 32
 nr_popc_bits_o = 7
-nr_regs_accm = 2
-addr_width_accm = 1
+nr_regs_accm = 4
+addr_width_accm = 2
 
 # Settings
 SIM = ghdl
