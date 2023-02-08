@@ -17,7 +17,6 @@ end accumulator;
 
 architecture bhv of accumulator is
   signal tmp: std_logic_vector(data_width-1 downto 0) := (others => '0');
-  signal token_add        : std_logic := '0';
 begin
   process (clk) begin
     if rising_edge(clk) then
