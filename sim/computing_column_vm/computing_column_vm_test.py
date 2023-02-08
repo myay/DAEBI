@@ -8,8 +8,9 @@ output_width = 32
 
 max_xnor_val = (2**(nr_xnor_gates))-1
 max_output_val = (2**(output_width))-1
-cycles = 100
-delay = 10
+reps = 100
+delay = 25
+cycles = 2*reps*delay
 
 lock = Lock()
 
@@ -34,7 +35,7 @@ async def generate_clock(dut):
 async def check_res(dut, acc_result, less, eq, th):
     # print("I'm executing", acc_result)
     # Assign threshold one clock cycle before result of dut is returned
-    await Timer(18, units="ns")
+    await Timer(20, units="ns")
     dut.threshold_in.value = th
     await Timer(1, units="ns")
     # await Timer(1, units="ns")
@@ -42,13 +43,6 @@ async def check_res(dut, acc_result, less, eq, th):
     # dut_result = int(dut.o_data_cc.value)
     dut_less = int(dut.less_cc.value)
     dut_eq = int(dut.eq_cc.value)
-    # print("value:", acc_result)
-    # print("less:", int(less))
-    # print("eq:", int(eq))
-    # print("th:", th)
-    # print("DUT value:", dut_result)
-    # print("DUT less:", dut_less)
-    # print("DUT eq:", dut_eq)
     # print("---")
     # assert dut_result == int(acc_result)
     assert dut_less == int(less)
@@ -57,16 +51,24 @@ async def check_res(dut, acc_result, less, eq, th):
     await Timer(2, units="ns")
     dut_result = int(dut.o_data_cc.value)
     assert dut_result == int(acc_result)
+    # print("---")
+    # print("value:", acc_result)
+    # print("less:", int(less))
+    # print("eq:", int(eq))
+    # print("th:", th)
+    # print("DUT value:", dut_result)
+    # print("DUT less:", dut_less)
+    # print("DUT eq:", dut_eq)
 
 
-async def set_inputs(dut, acc_result, cycles_param=cycles):
+async def set_inputs(dut, acc_result):
     """Set outputs."""
     random.seed(1)
     dut.xnor_inputs_1.value = int(0)
     dut.xnor_inputs_2.value = int(0)
     dut.threshold_in.value = int(0)
     # acc_result = 0
-    for cycle in range(cycles_param):
+    for rep in range(reps):
         # Sample inputs
         xnor_inputs_1 = random.randint(0, max_xnor_val)
         xnor_inputs_2 = random.randint(0, max_xnor_val)
@@ -96,7 +98,7 @@ async def computing_column_vm_test(dut):
     """Test Computing Column VM"""
 
     random.seed(1)
-    total_test_time = 2*cycles + 2*delay
+    total_test_time = reps*delay*2
     acc_result = 0
     await cocotb.start(generate_clock(dut))
 
@@ -116,13 +118,12 @@ async def computing_column_vm_test(dut):
 
     # Test reset
     dut.rst.value = int(1)
-    await cocotb.start(generate_clock_param(dut, 100))
-    await Timer(22, units="ns")
+    await Timer(24, units="ns")
     dut_result = int(dut.o_data_cc.value)
     assert dut_result == int(0), "Reset did not work as expected"
 
     # Run tests again, with reset set to 0, but with less cycles
     dut.rst.value = int(0)
-    await Timer(1, units="ns")
-    await cocotb.start(set_inputs(dut, acc_result, 50))
+    # await Timer(1, units="ns")
+    await cocotb.start(set_inputs(dut, acc_result))
     await Timer(total_test_time+10, units="ns")

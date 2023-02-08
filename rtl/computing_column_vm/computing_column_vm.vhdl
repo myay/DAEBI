@@ -27,8 +27,6 @@ architecture rtl of computing_column_vm is
 
 -- constant nr_popc_bits_o : integer := 7; -- nr of output bits of popcount unit, -> calculate using log2
 
-signal clk_cc : std_logic; -- Clock signal
-
 -- Signals for xnor array
 signal in_cc_1 : std_logic_vector(nr_xnor_gates-1 downto 0) := (others => '0'); -- Input 1 for xnor array
 signal in_cc_2 : std_logic_vector(nr_xnor_gates-1 downto 0) := (others => '1'); -- Input 2 for xnor array
@@ -41,14 +39,12 @@ signal i_val_popc : std_logic := '1';
 
 -- Signals for accumulator
 signal rst_acc: std_logic := '0'; -- Reset
-signal clk_acc: std_logic; -- Clock for accumulator
 signal i_data_acc : std_logic_vector(nr_popc_bits_o-1 downto 0) := (others => '0');
 signal o_data_acc : std_logic_vector(acc_data_width-1 downto 0) := (others => '0'); -- Output for accumulator
 signal rst_pipe : std_logic_vector(8 downto 0) := (others => '0');
 
 -- Signals for comparator
 signal threshold_cc : std_logic_vector(acc_data_width-1 downto 0) := (others => '0'); -- Output for accumulator
-
 
 begin
   -- Instantiate xnor array
@@ -64,7 +60,7 @@ begin
   inst_popcount : entity work.popcount(rtl)
     port map(
       i_val => i_val_popc,
-      clk => clk_cc,
+      clk => clk,
       rst => rst_popc,
       stream_i => o_data_xnor,
       o_val => o_val_popc,
@@ -78,7 +74,7 @@ begin
       data_width => acc_data_width
     )
     port map(
-      clk => clk_cc,
+      clk => clk,
       reset => rst_acc,
       i_data => i_data_acc,
       o_data => o_data_acc
@@ -103,10 +99,6 @@ begin
   end process;
 
   process(clk) begin
-    -- Update clock signal of cc
-    clk_cc <= clk;
-    -- Update clock signal of accumulator
-    clk_acc <= clk and o_val_popc;
     if rising_edge(clk) then
       -- Assign inputs to input buffers
       in_cc_1 <= xnor_inputs_1;
