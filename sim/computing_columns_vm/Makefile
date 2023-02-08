@@ -13,8 +13,9 @@ VHDL_SOURCES += $(PWD)/../../rtl/xnor/xnor_gate.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/xnor_array/xnor_gate_array.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/adder/adder.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/register_dff/register_dff.vhdl
-VHDL_SOURCES += $(PWD)/../../rtl/accumulator/accumulator_s.vhdl
+VHDL_SOURCES += $(PWD)/../../rtl/accumulator/accumulator.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/popcount/popcount.vhdl
+VHDL_SOURCES += $(PWD)/../../rtl/comparator/comparator.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/computing_column_vm/computing_column_vm.vhdl
 VHDL_SOURCES += $(PWD)/../../rtl/computing_columns_vm/computing_columns_vm.vhdl
 

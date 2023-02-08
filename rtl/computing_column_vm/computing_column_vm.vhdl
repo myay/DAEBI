@@ -68,7 +68,7 @@ begin
     );
 
   -- Instantiate accumulator
-  inst_accumulator : entity work.accumulator_s(bhv)
+  inst_accumulator : entity work.accumulator(bhv)
     generic map(
       input_width => nr_popc_bits_o,
       data_width => acc_data_width

@@ -6,7 +6,7 @@ ghdl -a ../xnor_array/xnor_gate_array.vhdl
 ghdl -a ../adder/adder.vhdl
 ghdl -a ../register_dff/register_dff.vhdl
 ghdl -a ../popcount/popcount.vhdl
-ghdl -a ../accumulator/accumulator_s.vhdl
+ghdl -a ../accumulator/accumulator.vhdl
 ghdl -a ../comparator/comparator.vhdl
 ghdl -a computing_column_vm.vhdl
 ghdl -a computing_column_vm_tb.vhdl
