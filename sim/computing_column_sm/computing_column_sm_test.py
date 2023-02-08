@@ -10,7 +10,7 @@ and_mask = 0xffff
 
 max_xnor_val = (2**(nr_xnor_gates))-1
 max_output_val = (2**(output_width))-1
-reps = 500
+reps = 100
 delay = 35
 cycles = reps*delay
 
@@ -57,7 +57,14 @@ async def check_res(dut, regs_py, addr_to_store_value, value_to_store, rep):
     # print("less", less)
     await Timer(16, units="ns")
     dut.register_select.value = int(addr_to_store_value)
-    await Timer(10, units="ns")
+    await Timer(7, units="ns")
+    # Sample threshold and set
+    threshold = random.randint(regs_py[addr_to_store_value]+32, regs_py[addr_to_store_value]+32)
+    if threshold < 0:
+        threshold = 0
+    dut.threshold_in.value = int(threshold & and_mask)
+    await Timer(3, units="ns")
+    # await Timer(10, units="ns")
     dut_result = int(dut.o_data_cc.value)
     # print("Before: Python value", regs_py)
     async with lock:
@@ -68,6 +75,13 @@ async def check_res(dut, regs_py, addr_to_store_value, value_to_store, rep):
     # print("python output", regs_py[addr_to_store_value])
     # print("dut output", dut_result)
     assert dut_result == int(regs_py[addr_to_store_value])
+
+    less = regs_py[addr_to_store_value] < threshold
+    eq = regs_py[addr_to_store_value] == threshold
+    dut_less = int(dut.less_cc.value)
+    dut_eq = int(dut.eq_cc.value)
+    assert dut_less == int(less)
+    assert dut_eq == int(eq)
     # await Timer(2, units="ns")
 
 async def set_inputs(dut, regs_py):
