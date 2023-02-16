@@ -18,9 +18,12 @@ entity controller_vm_v2 is
     i_valid        : in std_logic;                   -- Only calculate values while this signal is set
     i_inputs       : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Data input for input values
     i_weights      : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Data input for weight values
+	i_threshold    : in std_logic_vector(acc_data_width-1 downto 0); -- Threshold value to compare accumulated result
   -- o_addr_inputs  : out std_logic_vector(31 downto 0);         -- Address output for input memory
   -- o_addr_weights : out std_logic_vector(31 downto 0);         -- Address output for weight memory
-    o_result       : out std_logic_vector(acc_data_width-1 downto 0)
+    o_result       : out std_logic_vector(acc_data_width-1 downto 0);
+    o_less         : out std_logic;
+    o_equal        : out std_logic
   );
 end controller_vm_v2;
 
@@ -30,7 +33,9 @@ architecture rtl of controller_vm_v2 is
   -- type mem_out is array (0 to nr_computing_columns-1) of std_logic_vector(acc_data_width-1 downto 0);
   signal mem_w : array_2d(nr_computing_columns-1 downto 0)(nr_xnor_gates-1 downto 0);                     -- signals that store the weights
   signal mem_i : array_2d(nr_computing_columns-1 downto 0)(nr_xnor_gates-1 downto 0);                     -- signals that store the inputs
-  signal mem_o : array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0);                   -- signals that store the output for each computing column (currently unused)
+  signal mem_o : array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0);                    -- signals that store the output for each computing column (currently unused)
+  signal mem_t : array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0);                    -- signals that store the thresholds
+  signal mem_eq, mem_l : std_logic_vector(nr_computing_columns-1 downto 0);                               -- signals that store the equal and less outputs
   signal cnt : integer := 0;                 -- signal to store the currently used computing column
 
 begin
@@ -48,7 +53,10 @@ begin
       reset => reset,
       xnor_inputs_1 => mem_w,
       xnor_inputs_2 => mem_i,
-      o_result => mem_o
+	  thresholds_in => mem_t,
+      o_result => mem_o,
+	  less_results => mem_l,
+      eq_results => mem_eq
     );
 
   -- Calculate address for input (currently unused)
@@ -69,13 +77,17 @@ begin
           if i = cnt then
             mem_w(cnt) <= i_weights;
             mem_i(cnt) <= i_inputs;
+			mem_t(cnt) <= i_threshold;
 
             -- test output for vivado testing
             o_result <= mem_o(cnt);
+			o_less   <= mem_l(cnt);
+			o_equal  <= mem_eq(cnt);
           else
             -- xnor will calculate 0 -> idle all other computing columns
             mem_w(i) <= (others => '0');
             mem_i(i) <= (others => '1');
+			-- mem_t(i) <= (others => '0');
           end if;
         end loop;
 
