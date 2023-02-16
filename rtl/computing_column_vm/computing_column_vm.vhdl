@@ -7,9 +7,9 @@ use ieee.std_logic_1164.all;
 
 entity computing_column_vm is
   generic(
-    nr_xnor_gates: integer;
-    acc_data_width: integer;
-    nr_popc_bits_o: integer
+    nr_xnor_gates: integer := 64;
+    acc_data_width: integer := 13;
+    nr_popc_bits_o: integer := 7
   );
   port(
     clk           : in std_logic;

@@ -4,9 +4,9 @@ use ieee.numeric_std.all;
 
 entity regfile is
   generic(
-    data_width: integer;
-    addr_width: integer;
-    nr_regs: integer
+    data_width: integer := 13;
+    addr_width: integer := 8;
+    nr_regs: integer := 196
   );
   port(
     clk: in std_logic;

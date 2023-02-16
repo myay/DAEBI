@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.std_logic_1164.all;
 
 entity comparator is
-  generic(bit_width : integer := 16);
+  generic(bit_width : integer := 13);
   port(
     x : in std_logic_vector(bit_width-1 downto 0); -- Input value to compare
     threshold : in std_logic_vector(bit_width-1 downto 0); -- Threshold value to compare against

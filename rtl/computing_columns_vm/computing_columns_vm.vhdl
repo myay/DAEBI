@@ -16,7 +16,7 @@ entity computing_columns_vm is
   generic(
     nr_computing_columns : integer := 64; -- Number of computing columns used in this controller
     nr_xnor_gates : integer := 64; -- Number of XNOR gates used in each computing column
-    acc_data_width : integer := 16; -- Width of the output of each computing column
+    acc_data_width : integer := 13; -- Width of the output of each computing column
     nr_popc_bits_o: integer := 7
   );
   port(

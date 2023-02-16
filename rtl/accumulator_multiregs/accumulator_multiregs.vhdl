@@ -4,10 +4,10 @@ use ieee.numeric_std.all;
 
 entity accumulator_multiregs is
   generic(
-    input_width: integer;
-    data_width: integer;
-    addr_width : integer;
-    nr_regs : integer
+    input_width: integer := 7;
+    data_width: integer := 13;
+    addr_width : integer := 8; -- log2(nr_regs)
+    nr_regs : integer := 196 -- VGG3 example
   );
   port(
     i_val_acc : in std_logic;

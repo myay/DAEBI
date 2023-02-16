@@ -3,11 +3,11 @@ use ieee.std_logic_1164.all;
 
 entity computing_column_sm is
   generic(
-    nr_xnor_gates: integer; -- Number of XNOR gates
-    acc_data_width: integer; -- Width of registers in accumulator
-    nr_popc_bits_o: integer; -- Number of output bits from the popcount unit
-    nr_regs_accm: integer; -- Number of registers in the multiregs accumulator
-    addr_width_accm: integer -- Number of addresses neeed in the multiregs accumulator
+    nr_xnor_gates: integer := 64; -- Number of XNOR gates
+    acc_data_width: integer := 13; -- Width of registers in accumulator
+    nr_popc_bits_o: integer := 7; -- Number of output bits from the popcount unit
+    nr_regs_accm: integer := 196; -- Number of registers in the multiregs accumulator
+    addr_width_accm: integer := 8 -- Number of addresses neeed in the multiregs accumulator
   );
   port(
     clk           : in std_logic;

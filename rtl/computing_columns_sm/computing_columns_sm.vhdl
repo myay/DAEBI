@@ -16,10 +16,10 @@ entity computing_columns_sm is
   generic(
     nr_computing_columns : integer := 64; -- Number of computing columns used in this controller
     nr_xnor_gates: integer := 64; -- Number of XNOR gates
-    acc_data_width: integer := 16; -- Width of registers in accumulator
+    acc_data_width: integer := 13; -- Width of registers in accumulator
     nr_popc_bits_o: integer := 7; -- Number of output bits from the popcount unit
-    nr_regs_accm: integer := 2; -- Number of registers in the multiregs accumulator
-    addr_width_accm: integer := 1 -- Number of addresses neeed in the multiregs accumulator
+    nr_regs_accm: integer := 196; -- Number of registers in the multiregs accumulator
+    addr_width_accm: integer := 8 -- Number of addresses neeed in the multiregs accumulator
   );
   port(
     clk : in std_logic;

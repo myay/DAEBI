@@ -4,8 +4,8 @@ use ieee.numeric_std.all;
 
 entity accumulator is
   generic(
-    input_width: integer;
-    data_width: integer
+    input_width: integer := 7;
+    data_width: integer := 13
   );
   port(
     clk    : in std_logic;

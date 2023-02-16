@@ -4,8 +4,8 @@ use ieee.numeric_std.all;
 
 entity adder is
   generic(
-    w_i : integer;
-    w_o : integer
+    w_i : integer := 2;
+    w_o : integer := 3
   );
   port(
     a: in std_logic_vector(w_i-1 downto 0);

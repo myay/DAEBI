@@ -2,7 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 
 entity xnor_gate_array is
-  generic(nr_xnor_gates: integer);
+  generic(nr_xnor_gates: integer := 64);
   port(
     xnor_inputs_1 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- First inputs
     xnor_inputs_2 : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Second inputs

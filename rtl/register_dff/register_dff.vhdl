@@ -2,7 +2,7 @@ library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 
 entity register_dff is
-  generic(w : integer);
+  generic(w : integer := 13);
   port(
     clk   : in std_logic;
     reset : in std_logic;
