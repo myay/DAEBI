@@ -5,12 +5,14 @@ use IEEE.STD_LOGIC_1164.ALL;
 use ieee.numeric_std.all;
 use work.array_pack.all;
 
-entity controller_vm_v2 is
+entity controller_sm is
   generic(
     nr_xnor_gates        : integer := 64; -- Number of XNOR gates used in each computing column
     nr_computing_columns : integer := 64; -- Number of computing columns used in this controller
-    acc_data_width       : integer := 16; -- Width of the output of each computing column
-    nr_popc_bits_o       : integer := 7 -- Nr of bits for the popcount result
+    acc_data_width       : integer := 13; -- Width of the output of each computing column
+    nr_popc_bits_o       : integer := 7;  -- Nr of bits for the popcount result
+	nr_regs_accm		 : integer := 2;  -- Number of registers in the multiregs accumulator
+    addr_width_accm		 : integer := 1   -- Number of addresses neeed in the multiregs accumulator
   );
   port(
     clk            : in std_logic;
@@ -25,9 +27,9 @@ entity controller_vm_v2 is
     o_less         : out std_logic;
     o_equal        : out std_logic
   );
-end controller_vm_v2;
+end controller_sm;
 
-architecture rtl of controller_vm_v2 is
+architecture rtl of controller_sm is
 
   -- type mem_in is array (0 to nr_computing_columns-1) of std_logic_vector(nr_xnor_gates-1 downto 0);
   -- type mem_out is array (0 to nr_computing_columns-1) of std_logic_vector(acc_data_width-1 downto 0);
@@ -35,18 +37,22 @@ architecture rtl of controller_vm_v2 is
   signal mem_i : array_2d(nr_computing_columns-1 downto 0)(nr_xnor_gates-1 downto 0);                     -- signals that store the inputs
   signal mem_o : array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0);                    -- signals that store the output for each computing column (currently unused)
   signal mem_t : array_2d(nr_computing_columns-1 downto 0)(acc_data_width-1 downto 0);                    -- signals that store the thresholds
+  signal reg_sel: array_2d(nr_computing_columns-1 downto 0)(addr_width_accm-1 downto 0);				  -- Addresses of registers
   signal mem_eq, mem_l : std_logic_vector(nr_computing_columns-1 downto 0);                               -- signals that store the equal and less outputs
-  signal cnt : integer := 0;                 -- signal to store the currently used computing column
+  signal cnt : integer := 0;                															  -- signal to store the currently used computing column
+  signal reg_cnt : integer := 0;          	     														  -- signal to store the currently used register
 
 begin
 
   -- Generate component of computing columns
-  inst_cc : entity work.computing_columns_vm(rtl)
+  inst_cc : entity work.computing_columns_sm(rtl)
     generic map(
       nr_computing_columns => nr_computing_columns,
       nr_xnor_gates => nr_xnor_gates,
       acc_data_width => acc_data_width,
-      nr_popc_bits_o => 7
+      nr_popc_bits_o => nr_popc_bits_o,
+	  nr_regs_accm => nr_regs_accm,
+      addr_width_accm => addr_width_accm
     )
     port map(
       clk => clk,
@@ -54,6 +60,7 @@ begin
       xnor_inputs_1 => mem_w,
       xnor_inputs_2 => mem_i,
 	  thresholds_in => mem_t,
+	  register_select => reg_sel,
       o_result => mem_o,
 	  less_results => mem_l,
       eq_results => mem_eq
@@ -78,6 +85,7 @@ begin
             mem_w(cnt) <= i_weights;
             mem_i(cnt) <= i_inputs;
 			mem_t(cnt) <= i_threshold;
+			reg_sel(cnt) <=  std_logic_vector(to_unsigned(reg_cnt, addr_width_accm));
 
             -- test output for vivado testing
             o_result <= mem_o(cnt);
@@ -96,6 +104,12 @@ begin
           cnt <= cnt + 1;
         else
           cnt <= 0;
+		  -- increase register address to use next accumulator register
+		  if reg_cnt < nr_regs_accm-1 then
+		    reg_cnt <= reg_cnt + 1;
+		  else
+		    reg_cnt <= 0;
+		  end if;
         end if;
 
       else
