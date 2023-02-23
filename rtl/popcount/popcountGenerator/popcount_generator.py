@@ -79,12 +79,12 @@ begin
 	# test values
 	output += """    i_val_t <= '1';
     input_t <= x"{one}";
-    wait for 4 ns;
+    wait for 2 ns;
 """.format(one="f"*int(bits/4))
 	for i in range(20):
 		bin, count = randomBitvector(bits)
 		output += """	input_t <= "{bin_val}"; -- popcount of {count}
-    wait for 4 ns;
+    wait for 2 ns;
 """.format(bin_val=bin, count=count)
 
 
@@ -267,7 +267,7 @@ architecture rtl of popcount is
 	output += """
 -------------------------------------------
   process(mem1_o) begin
-    P <= mem1_o({bits1} downto 0) ;
+    P <= mem1_o;
   end process;
 
   --Calculate the Finish Signal with help of delay Signal
