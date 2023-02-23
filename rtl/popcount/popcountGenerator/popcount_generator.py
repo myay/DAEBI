@@ -9,10 +9,10 @@ def main():
 	parser = argparse.ArgumentParser(description='Generate vhdl file for a popcount unit.')
 	parser.add_argument("-i", "--bits_in", help="number of input bits (has to be a power of 2), default 64", type=int, default=64)
 	parser.add_argument("-o", "--bits_out", help="number of output bits (has to be greater than log2 of input bits), default 6", type=int, default=6)
-	parser.add_argument('-tb', '--testbench', help="generate a testbench for the popcount unit", action='store_true')
+	parser.add_argument('-tb', '--testbench', help="generate a testbench for the popcount unit", action='store_true', default=True)
 	# parser.add_argument("-n", "--name", help="name of the output file ", type=string, default='popcount')
 	args = parser.parse_args()
-	
+
 	bits = args.bits_in
 	bits_out = args.bits_out
 	if bits < 4:
@@ -20,13 +20,13 @@ def main():
 		print("Number of input bits has to be a power of 2 greater than 2 (4,8,16,32,...)")
 	generate_popcount(bits, bits_out)
 	print("Generated: popcount unit with {in_bits} bits wide input and {out_bits} bits wide output.".format(in_bits=bits,out_bits=bits_out))
-	
+
 	testbench = args.testbench
 	if testbench:
 		generate_popcount_tb(bits, bits_out)
 		print("Generated: testbench for popcount unit")
-	
-	
+
+
 def generate_popcount_tb(bits, bits_out):
 	# file header
 	output = """library ieee;
@@ -75,7 +75,7 @@ begin
     wait for 1 ns;
 """.format(bits_in=bits-1, bits_out=bits_out-1)
 
-	
+
 	# test values
 	output += """    i_val_t <= '1';
     input_t <= x"{one}";
@@ -87,7 +87,7 @@ begin
     wait for 4 ns;
 """.format(bin_val=bin, count=count)
 
-	
+
 	# rest of testbench
 	output += """    wait;
   end process;
@@ -106,12 +106,12 @@ begin
       wait;
     end process;
 end test;"""
-	
+
 	# write file
 	with open('popcount_tb.vhdl', 'w') as file:
 		file.write(output)
-		
-	
+
+
 def generate_popcount(bits, bits_out):
 	# file header
 	output = """library IEEE;
@@ -123,7 +123,7 @@ entity popcount is
 """
 
 	# ports
-	output_size = math.log2(bits)
+	output_size = int(math.log2(bits)) + 1
 	# if bits_out < math.log2(bits):
 		# output_size = math.log2(bits)
 	output += """  port(
@@ -139,26 +139,26 @@ end popcount;
 architecture rtl of popcount is
   -- Buffer memory definitions for intermediate storage of partial sums
 """.format(bits=bits-1,bits_out=output_size-1)
-	
+
 	# memory signals
 	array_amount = int(bits/2)
 	bit_amount = 2
-	
+
 	while array_amount > 1:
 		output += """  type ram_type{array_amount} is array ({array_amount1} downto 0) of std_logic_vector({bits1} downto 0); -- {array_amount} arrays of {bits} bits (buffer memory for results of level {bits1} additions)
   signal mem{array_amount}_i      : ram_type{array_amount} := (others => (others => '0'));
   signal mem{array_amount}_o      : ram_type{array_amount} := (others => (others => '0'));
 
 """.format(array_amount=array_amount, array_amount1 = array_amount-1, bits=bit_amount, bits1 = bit_amount-1)
-		
+
 		bit_amount = bit_amount+1
 		array_amount = int(array_amount/2)
-	
-	
+
+
 	output += """  type ram_type1 is array (0 downto 0) of std_logic_vector({bits1} downto 0); -- 1 array of {bits} bits (buffer memory for results of {bits1}th level additions)
 """.format(bits=bit_amount,bits1=bit_amount-1)
-		
-	
+
+
 	# input/output and delay signal
 	delay_amount = int(math.log2(bits))+1
 	output += """
@@ -170,7 +170,7 @@ architecture rtl of popcount is
   signal delay_val    : std_logic_vector({delay} downto 0):= (others => '0'); --Delay signal
 
 """.format(delay=delay_amount+1,input_bits=bits-1,bits1=bit_amount-1,output_size=output_size-1)
-	
+
 	# connecting input signal
 	alternating_input = "10"*(int(bits/2))
 	output += """begin
@@ -186,9 +186,9 @@ architecture rtl of popcount is
   end process;
 
 """.format(alternating_input=alternating_input)
-	
+
 	# top layer of adders
-	
+
 	output += """	  -- Generate {bits2} adders to add neighbouring bits of input and buffer the results (1st level additions)
   gen_add_1_2 : for i in 0 to {bits1} generate
     inst_adder_1_2:  entity work.adder(rtl)
@@ -207,14 +207,14 @@ architecture rtl of popcount is
         q => mem{bits2}_o(i)
       );
   end generate;
-  
+
 """.format(bits2=int(bits/2),bits1=int(bits/2)-1)
 
-	
+
 	# mid levels of adders
 	adder_amount = int(bits/4)
 	bit_amount = 3
-	
+
 	while adder_amount > 1:
 		output += """  -- Generate {adder_amount} adders to add neighbouring bits of input and buffer the results (level {bit1} additions)
   gen_add_{bit1}_{bit} : for i in 0 to {adder_amount1} generate
@@ -236,12 +236,12 @@ architecture rtl of popcount is
   end generate;
 
 """.format(adder_amount1=adder_amount-1 ,adder_amount=adder_amount, adder_amount2 = adder_amount*2, bit1=bit_amount-1, bit = bit_amount)
-		
+
 		bit_amount = bit_amount+1
 		adder_amount = int(adder_amount/2)
-	
-	
-	
+
+
+
 	# last adder
 	output += """  -- Generate 1 adder to add neighbouring bits of input and buffer the results ({bits1}th level addition)
   inst_adder_{bits1}_{bits} : entity work.adder(rtl)
@@ -260,10 +260,10 @@ architecture rtl of popcount is
       q => mem1_o
     );
 """.format(bits=bit_amount,bits1=bit_amount-1)
-	
-	
+
+
 	# Finish signal, output and end of file
-	
+
 	output += """
 -------------------------------------------
   process(mem1_o) begin
@@ -300,13 +300,13 @@ architecture rtl of popcount is
   end process;
 
 end rtl;""".format(delay=delay_amount,bits=bit_amount,bits1=output_size)
-		
-	
+
+
 	with open('popcount.vhdl', 'w') as file:
 		file.write(output)
-		
 
-		
+
+
 # d: number to convert
 # n: number of digits of result
 def dez_to_hex(d, n):
@@ -320,11 +320,11 @@ def dez_to_hex(d, n):
 			output += chars[dDiv]
 		else:
 			output += "0"
-	
+
 	output += chars[dNext]
 	return output
-		
-		
+
+
 # n: length of the random bitvector
 def randomBitvector(n):
 	vec = ""
@@ -335,8 +335,8 @@ def randomBitvector(n):
 			count += 1
 		else:
 			vec += "0"
-		
+
 	return (vec,count)
-		
+
 if __name__ == "__main__":
     main()
