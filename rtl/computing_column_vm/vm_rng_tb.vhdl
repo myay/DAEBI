@@ -44,7 +44,9 @@ constant delta: integer := 196;
 -- After how many clock cycles the accumulator should be reset
 constant reset_it: integer := integer(ceil(real(beta)/real(64)));
 -- Total amount of iterations (input applications) that need to be performed
-constant max_clock_cyles: integer := integer(alpha*delta*reset_it);
+constant max_iterations: integer := integer(alpha*delta*reset_it);
+constant delay_cycles: integer := integer(floor(real(max_iterations)/real(reset_it)));
+constant total_clockc: integer := max_iterations + delay_cycles + 10;
 
 begin
   computing_column_test: computing_column_vm
@@ -68,7 +70,7 @@ begin
   clk_process: process
     variable i: integer := 0;
     begin
-      while i<max_clock_cyles loop
+      while i<total_clockc loop
         -- clk_t <= not clk_t after clk_period/2;
         clk_t <= '0';
         wait for clk_period/2;  -- Signal is '0'.
@@ -107,7 +109,7 @@ begin
       -- report "ceil:  " & integer'image(reset_it);
       -- report "ceil:  " & integer'image(total_it);
       wait for clk_period/2;
-      while j < max_clock_cyles loop
+      while j < max_iterations loop
         -- report "j" & integer'image(j);
         if ((j mod reset_it = 0) and (j /= 0)) then
           -- report "reset:  " & integer'image(j);
