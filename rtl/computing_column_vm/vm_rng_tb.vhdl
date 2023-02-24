@@ -26,21 +26,23 @@ architecture test of vm_rng_tb is
   end component;
 
 -- Inputs
-signal rst_t: std_logic;
-signal input_1: std_logic_vector(63 downto 0);
-signal input_2: std_logic_vector(63 downto 0);
-signal input_threshold: std_logic_vector(31 downto 0);
+signal rst_t: std_logic := '0';
+signal input_1: std_logic_vector(63 downto 0) := (others => '0');
+signal input_2: std_logic_vector(63 downto 0) := (others => '0');
+signal input_threshold: std_logic_vector(31 downto 0) := (others => '0');
 -- Outputs
 signal output_cc: std_logic_vector(31 downto 0);
-signal less_cc_t, eq_cc_t: std_logic;
+signal less_cc_t, eq_cc_t: std_logic := '0';
 signal clk_t: std_logic := '0';
 constant clk_period : time := 2 ns;
 -- constant max_clock_cyles: integer := 60;
 signal res_xnor : std_logic_vector(63 downto 0) := (others => '0');
--- Workload
+-- Workload definition
 constant alpha: integer := 64;
 constant beta: integer := 576;
 constant delta: integer := 196;
+constant beta_minus_half : real := 0.5*real(beta/2);
+constant beta_plus_half : real := 1.5*real(beta/2);
 -- After how many clock cycles the accumulator should be reset
 constant reset_it: integer := integer(ceil(real(beta)/real(64)));
 -- Total amount of iterations (input applications) that need to be performed
@@ -87,6 +89,7 @@ begin
     variable rand_real_val : real; -- For storing random real value
     variable rand_int_val : integer; -- For storing random integer value
     variable j: integer := 0; -- For iterating until there are no more clock cycles
+    variable rand_threshold : integer;
     -- Debug signals and variables
     variable res_popc: integer := 0;
     variable acc_result: integer := 0;
@@ -103,8 +106,15 @@ begin
       return rlv_val;
     end function;
 
+    -- Function for generating random integer
+    impure function rand_int(min_val, max_val : real) return integer is
+      variable x : real; -- Returned random value in rng function
     begin
-    -- TODO: init column
+      uniform(seed1, seed2, x);
+      return integer(round(x * (max_val - min_val + 1.0) + (min_val) - 0.5));
+    end function;
+
+    begin
     -- start calculations
       -- report "ceil:  " & integer'image(reset_it);
       -- report "ceil:  " & integer'image(total_it);
@@ -119,6 +129,11 @@ begin
           rst_t <= '1';
           acc_result := 0;
           wait for clk_period;
+          -- Apply next threshold
+          -- report "The value of 'beta_minus' is " & real'image(beta_minus_half);
+          -- report "The value of 'beta_plus' is " & real'image(beta_plus_half);
+          rand_threshold := rand_int(beta_minus_half,beta_plus_half);
+          input_threshold <= std_logic_vector(to_unsigned(rand_threshold, input_threshold'length));
         end if;
         rst_t <= '0';
         input_1 <= rand_lv(64);
