@@ -42,7 +42,10 @@ sources_ws = [
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataflow', type=str, default=None, help='Dataflow type in the design: OS or WS')
 parser.add_argument('--n', type=int, default=64, help='Number of XNOR gates per column')
-parser.add_argument('--dw', type=int, default=64, help='Number of XNOR gates per column')
+parser.add_argument('--dw', type=int, default=64, help='Width of datapath')
+parser.add_argument('--alpha', type=int, default=64, help='alpha')
+parser.add_argument('--beta', type=int, default=576, help='beta')
+parser.add_argument('--delta', type=int, default=196, help='delta')
 args = parser.parse_args()
 
 # Create a folder for the design
@@ -68,9 +71,18 @@ for source in sources_tocopy:
     os.popen(cp_command)
 
 # Create one VM column from template
-design_params = {"n": args.n,  "dw": args.dw, "popc_o": popc_bits_out, "reset_pipe_delay": reset_pipe_delay_dict_os[args.n]}
+design_params = {
+"n": args.n,
+"dw": args.dw,
+"popc_o": popc_bits_out,
+"reset_pipe_delay": reset_pipe_delay_dict_os[args.n],
+"alpha": args.alpha,
+"beta": args.beta,
+"delta": args.delta,
+}
 
 environment = Environment(loader=FileSystemLoader("templates/"))
+
 template = environment.get_template("computing_column_vm.vhdl")
 
 filename = directory + "/" + "computing_column_vm.vhdl"
@@ -79,7 +91,15 @@ content = template.render(
 )
 with open(filename, mode="w", encoding="utf-8") as genfile:
     genfile.write(content)
-    # print(f"Generated {filename}")
+
+template = environment.get_template("vm_rng_tb.vhdl")
+
+filename = directory + "/" + "vm_rng_tb.vhdl"
+content = template.render(
+    design_params
+)
+with open(filename, mode="w", encoding="utf-8") as genfile:
+    genfile.write(content)
 
 print("Design is stored in the folder {}.".format(directory))
 
