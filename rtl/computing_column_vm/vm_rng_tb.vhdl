@@ -101,7 +101,11 @@ begin
     begin
       for i in rlv_val'range loop
         uniform(seed1, seed2, x);
-        rlv_val(i) := '1' when x > 0.5 else '0';
+        if x > 0.5 then
+          rlv_val(i) := '1';
+        else
+          rlv_val(i) := '0';
+        end if;
       end loop;
       return rlv_val;
     end function;

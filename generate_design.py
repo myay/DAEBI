@@ -2,6 +2,8 @@ import os
 import math
 import argparse
 
+from jinja2 import Environment, FileSystemLoader
+
 sources_os = [
 "rtl/xnor/xnor_gate.vhdl",
 "rtl/xnor_array/xnor_gate_array.vhdl",
@@ -10,8 +12,20 @@ sources_os = [
 "rtl/popcount/popcountGenerator/popcount.vhdl",
 "rtl/accumulator/accumulator.vhdl",
 "rtl/comparator/comparator.vhdl",
-"rtl/computing_column_vm/computing_column_vm.vhdl",
+# "rtl/computing_column_vm/computing_column_vm.vhdl",
 ]
+
+reset_pipe_delay_dict_os = {
+8: 6,
+16: 7,
+32: 8,
+64: 9,
+128: 10,
+256: 11,
+512: 12,
+1024: 13,
+2048: 14,
+}
 
 sources_ws = [
 "rtl/xnor/xnor_gate.vhdl",
@@ -28,6 +42,7 @@ sources_ws = [
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataflow', type=str, default=None, help='Dataflow type in the design: OS or WS')
 parser.add_argument('--n', type=int, default=64, help='Number of XNOR gates per column')
+parser.add_argument('--dw', type=int, default=64, help='Number of XNOR gates per column')
 args = parser.parse_args()
 
 # Create a folder for the design
@@ -51,6 +66,20 @@ if args.dataflow == "WS":
 for source in sources_tocopy:
     cp_command = "cp {} {}/{}".format(source, directory, os.path.basename(source))
     os.popen(cp_command)
+
+# Create one VM column from template
+design_params = {"n": args.n,  "dw": args.dw, "popc_o": popc_bits_out, "reset_pipe_delay": reset_pipe_delay_dict_os[args.n]}
+
+environment = Environment(loader=FileSystemLoader("templates/"))
+template = environment.get_template("computing_column_vm.vhdl")
+
+filename = directory + "/" + "computing_column_vm.vhdl"
+content = template.render(
+    design_params
+)
+with open(filename, mode="w", encoding="utf-8") as genfile:
+    genfile.write(content)
+    # print(f"Generated {filename}")
 
 print("Design is stored in the folder {}.".format(directory))
 
