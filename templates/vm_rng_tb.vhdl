@@ -29,8 +29,8 @@ architecture test of vm_rng_tb is
 
 -- Inputs
 signal rst_t: std_logic := '0';
-signal input_1: std_logic_vector({{ n-1 }} downto 0) := "0101010101010101010101010101010101010101010101010101010101010101";
-signal input_2: std_logic_vector({{ n-1 }} downto 0) := "1010101010101010101010101010101010101010101010101010101010101010";
+signal input_1: std_logic_vector({{ n-1 }} downto 0) := "{{ neutral_input_1 }}";
+signal input_2: std_logic_vector({{ n-1 }} downto 0) := "{{ neutral_input_2 }}";
 signal input_threshold: std_logic_vector({{ dw-1 }} downto 0) := (others => '0');
 -- Outputs
 signal output_cc: std_logic_vector({{ dw-1 }} downto 0);
@@ -143,8 +143,8 @@ begin
           acc_result := 0;
           k := 0;
           -- Apply neutral elements
-          input_1 <= "0101010101010101010101010101010101010101010101010101010101010101";
-          input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
+          input_1 <= "{{ neutral_input_1 }}";
+          input_2 <= "{{ neutral_input_2 }}";
           rst_t <= '1';
           wait for clk_period;
           -- Apply next threshold

@@ -73,6 +73,18 @@ for source in sources_tocopy:
     cp_command = "cp {} {}/{}".format(source, directory, os.path.basename(source))
     os.popen(cp_command)
 
+# create neutral inputs with correct lenths
+neutral_input_1 = ""
+neutral_input_2 = ""
+
+for i in range(args.n):
+    if i % 2 == 0:
+        neutral_input_1 += "1"
+        neutral_input_2 += "0"
+    else:
+        neutral_input_1 += "0"
+        neutral_input_2 += "1"    
+
 # Create one VM column from template
 design_params = {
 "n": args.n,
@@ -82,7 +94,9 @@ design_params = {
 "alpha": args.alpha,
 "beta": args.beta,
 "delta": args.delta,
-"debug": args.debug
+"debug": args.debug,
+"neutral_input_1": neutral_input_1,
+"neutral_input_2": neutral_input_2,
 }
 
 environment = Environment(loader=FileSystemLoader("templates/"))
