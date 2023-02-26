@@ -47,15 +47,15 @@ constant beta_plus_half : real := 1.5*real(beta/2);
 constant reset_it: integer := integer(ceil(real(beta)/real({{ n }})));
 -- Total amount of iterations (input applications) that need to be performed
 {% if debug == 1 %}
-constant max_iterations: integer := 50;--integer(alpha*delta*reset_it);
+constant max_iterations: integer := 200;--integer(alpha*delta*reset_it);
 {% else %}
 constant max_iterations: integer := integer(alpha*delta*reset_it);
 {% endif %}
 constant delay_cycles: integer := integer(floor(real(max_iterations)/real(reset_it)));
 {% if debug == 1 %}
-constant total_clockc: integer := 50;--max_iterations + delay_cycles + 10;
+constant total_clockc: integer := 200;--max_iterations + delay_cycles + 10;
 {% else %}
-constant total_clockc: integer := max_iterations + delay_cycles + 10;
+constant total_clockc: integer := max_iterations + delay_cycles + {{ reset_pipe_delay }};
 {% endif %}
 
 begin

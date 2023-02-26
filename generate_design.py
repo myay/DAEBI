@@ -83,7 +83,7 @@ for i in range(args.n):
         neutral_input_2 += "0"
     else:
         neutral_input_1 += "0"
-        neutral_input_2 += "1"    
+        neutral_input_2 += "1"
 
 # Create one VM column from template
 design_params = {
@@ -118,6 +118,10 @@ content = template.render(
 )
 with open(filename, mode="w", encoding="utf-8") as genfile:
     genfile.write(content)
+
+if args.debug == 1:
+    cp_command = "cp {} {}".format("templates/steps_vm_rng_debug.sh", directory)
+    os.popen(cp_command)
 
 print("Design is stored in the folder {}.".format(directory))
 
