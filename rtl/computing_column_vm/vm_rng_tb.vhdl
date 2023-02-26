@@ -128,7 +128,7 @@ begin
       -- report "ceil:  " & integer'image(total_it);
       wait for clk_period/2;
       while j < max_iterations loop
-        report "j = " & integer'image(j);
+        -- report "j = " & integer'image(j);
         if k = reset_it then
           acc_result := 0;
           k := 0;
