@@ -44,6 +44,7 @@ sources_ws = [
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataflow', type=str, default=None, help='Dataflow type in the design: OS or WS')
 parser.add_argument('--n', type=int, default=64, help='Number of XNOR gates per column')
+parser.add_argument('--m', type=int, default=1, help='Number of XNOR gates per column')
 parser.add_argument('--dw', type=int, default=64, help='Width of datapath')
 parser.add_argument('--alpha', type=int, default=64, help='alpha')
 parser.add_argument('--beta', type=int, default=576, help='beta')
