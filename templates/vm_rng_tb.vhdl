@@ -1,4 +1,4 @@
-{# templates/vm_rng_tb.vhdl #}
+{# templates/vm_rng_tb_2.vhdl #}
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -29,16 +29,14 @@ architecture test of vm_rng_tb is
 
 -- Inputs
 signal rst_t: std_logic := '0';
-signal input_1: std_logic_vector({{ n-1 }} downto 0) := (others => '0');
-signal input_2: std_logic_vector({{ n-1 }} downto 0) := (others => '0');
+signal input_1: std_logic_vector({{ n-1 }} downto 0) := "0101010101010101010101010101010101010101010101010101010101010101";
+signal input_2: std_logic_vector({{ n-1 }} downto 0) := "1010101010101010101010101010101010101010101010101010101010101010";
 signal input_threshold: std_logic_vector({{ dw-1 }} downto 0) := (others => '0');
 -- Outputs
 signal output_cc: std_logic_vector({{ dw-1 }} downto 0);
 signal less_cc_t, eq_cc_t: std_logic := '0';
 signal clk_t: std_logic := '0';
 constant clk_period : time := 2 ns;
--- constant max_clock_cyles: integer := 60;
-signal res_xnor : std_logic_vector({{ n-1 }} downto 0) := (others => '0');
 -- Workload definition
 constant alpha: integer := {{ alpha }};
 constant beta: integer := {{ beta }};
@@ -48,9 +46,17 @@ constant beta_plus_half : real := 1.5*real(beta/2);
 -- After how many clock cycles the accumulator should be reset
 constant reset_it: integer := integer(ceil(real(beta)/real({{ n }})));
 -- Total amount of iterations (input applications) that need to be performed
+{% if debug == 1 %}
+constant max_iterations: integer := 50;--integer(alpha*delta*reset_it);
+{% else %}
 constant max_iterations: integer := integer(alpha*delta*reset_it);
+{% endif %}
 constant delay_cycles: integer := integer(floor(real(max_iterations)/real(reset_it)));
+{% if debug == 1 %}
+constant total_clockc: integer := 50;--max_iterations + delay_cycles + 10;
+{% else %}
 constant total_clockc: integer := max_iterations + delay_cycles + 10;
+{% endif %}
 
 begin
   computing_column_test: computing_column_vm
@@ -90,7 +96,11 @@ begin
     variable seed1, seed2 : integer := 999; -- Seeds for reproducable random numbers
     variable rand_real_val : real; -- For storing random real value
     variable rand_int_val : integer; -- For storing random integer value
+    variable rand_int_1 : std_logic_vector({{ n-1 }} downto 0);
+    variable rand_int_2 : std_logic_vector({{ n-1 }} downto 0);
+    variable res_xnor : std_logic_vector({{ n-1 }} downto 0);
     variable j: integer := 0; -- For iterating until there are no more clock cycles
+    variable k: integer := 0; -- For counting the number of additions performed
     variable rand_threshold : integer;
     -- Debug signals and variables
     variable res_popc: integer := 0;
@@ -121,42 +131,52 @@ begin
     end function;
 
     begin
-    -- start calculations
       -- report "ceil:  " & integer'image(reset_it);
       -- report "ceil:  " & integer'image(total_it);
       wait for clk_period/2;
       while j < max_iterations loop
-        -- report "j" & integer'image(j);
-        if ((j mod reset_it = 0) and (j /= 0)) then
-          -- report "reset:  " & integer'image(j);
+        -- report "j = " & integer'image(j);
+        if k = reset_it then
+          {% if debug == 1 %}
+          report "Reset.";
+          {% endif %}
+          acc_result := 0;
+          k := 0;
           -- Apply neutral elements
           input_1 <= "0101010101010101010101010101010101010101010101010101010101010101";
           input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
           rst_t <= '1';
-          acc_result := 0;
           wait for clk_period;
           -- Apply next threshold
           -- report "The value of 'beta_minus' is " & real'image(beta_minus_half);
           -- report "The value of 'beta_plus' is " & real'image(beta_plus_half);
           rand_threshold := rand_int(beta_minus_half,beta_plus_half);
           input_threshold <= std_logic_vector(to_unsigned(rand_threshold, input_threshold'length));
+        else
+          rst_t <= '0';
+          rand_int_1 := rand_lv({{ n }});
+          rand_int_2 := rand_lv({{ n }});
+          input_1 <= rand_int_1;
+          input_2 <= rand_int_2;
+          -- Compute for comparison
+          res_xnor := rand_int_1 xnor rand_int_2;
+          for i in 0 to {{ n-1 }} loop
+            if (res_xnor(i)='1') then
+              res_popc := res_popc + 1;
+            end if;
+          end loop;
+          -- report "The value of 'res_popc' is " & integer'image(res_popc);
+          acc_result := acc_result + res_popc;
+          -- Increment number of additions
+          k := k + 1;
+          res_popc := 0;
+          {% if debug == 1 %}
+          report "The value of 'acc_result' is " & integer'image(acc_result);
+          {% endif %}
+          wait for clk_period;
         end if;
-        rst_t <= '0';
-        input_1 <= rand_lv({{ n }});
-        input_2 <= rand_lv({{ n }});
-        -- test result for printing
-        res_xnor <= input_1 xnor input_2;
-        for i in 0 to {{ n-1 }} loop
-          if (res_xnor(i)='1') then
-            res_popc := res_popc + 1;
-          end if;
-        end loop;
-        acc_result := acc_result + res_popc;
-        -- report "The value of 'res_popc' is " & integer'image(res_popc);
-        -- report "The value of 'acc_popc' is " & integer'image(acc_result);
-        res_popc := 0;
+        -- assert to_integer(unsigned(output_cc)) = acc_result report "Assertion violation. acc_result = " & integer'image(acc_result);
         j := j+1;
-        wait for clk_period;
       end loop;
       wait;
     end process;

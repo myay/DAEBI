@@ -27,6 +27,8 @@ reset_pipe_delay_dict_os = {
 2048: 14,
 }
 
+# TODO: generate neural elements for XNOR gates for arbitrary n
+
 sources_ws = [
 "rtl/xnor/xnor_gate.vhdl",
 "rtl/xnor_array/xnor_gate_array.vhdl",
@@ -46,6 +48,7 @@ parser.add_argument('--dw', type=int, default=64, help='Width of datapath')
 parser.add_argument('--alpha', type=int, default=64, help='alpha')
 parser.add_argument('--beta', type=int, default=576, help='beta')
 parser.add_argument('--delta', type=int, default=196, help='delta')
+parser.add_argument('--debug', type=int, default=0, help='delta')
 args = parser.parse_args()
 
 # Create a folder for the design
@@ -79,6 +82,7 @@ design_params = {
 "alpha": args.alpha,
 "beta": args.beta,
 "delta": args.delta,
+"debug": args.debug
 }
 
 environment = Environment(loader=FileSystemLoader("templates/"))
