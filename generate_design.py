@@ -4,6 +4,7 @@ import argparse
 
 from jinja2 import Environment, FileSystemLoader
 
+# Non-template files for OS
 sources_os = [
 "rtl/xnor/xnor_gate.vhdl",
 "rtl/xnor_array/xnor_gate_array.vhdl",
@@ -27,8 +28,7 @@ reset_pipe_delay_dict_os = {
 2048: 14,
 }
 
-# TODO: generate neural elements for XNOR gates for arbitrary n
-
+# Non-template files for WS
 sources_ws = [
 "rtl/xnor/xnor_gate.vhdl",
 "rtl/xnor_array/xnor_gate_array.vhdl",
@@ -44,16 +44,18 @@ sources_ws = [
 parser = argparse.ArgumentParser()
 parser.add_argument('--dataflow', type=str, default=None, help='Dataflow type in the design: OS or WS')
 parser.add_argument('--n', type=int, default=64, help='Number of XNOR gates per column')
-parser.add_argument('--m', type=int, default=1, help='Number of XNOR gates per column')
+parser.add_argument('--m', type=int, default=1, help='Number of columns in accelerator')
 parser.add_argument('--dw', type=int, default=64, help='Width of datapath')
 parser.add_argument('--alpha', type=int, default=64, help='alpha')
 parser.add_argument('--beta', type=int, default=576, help='beta')
 parser.add_argument('--delta', type=int, default=196, help='delta')
-parser.add_argument('--debug', type=int, default=0, help='delta')
+parser.add_argument('--debug', type=int, default=0, help='Debug mode or production mode')
 args = parser.parse_args()
 
+# TODO set seed
+
 # Create a folder for the design
-directory = "design_df{}_n{}".format(args.dataflow, args.n)
+directory = "design_df{}_m{}_n{}".format(args.dataflow, args.m, args.n)
 if not os.path.exists(directory):
     os.makedirs(directory)
 
@@ -86,9 +88,10 @@ for i in range(args.n):
         neutral_input_1 += "0"
         neutral_input_2 += "1"
 
-# Create one VM column from template
+# Create design from template
 design_params = {
 "n": args.n,
+"m": args.m,
 "dw": args.dw,
 "popc_o": popc_bits_out,
 "reset_pipe_delay": reset_pipe_delay_dict_os[args.n],
@@ -102,27 +105,27 @@ design_params = {
 
 environment = Environment(loader=FileSystemLoader("templates/"))
 
-template = environment.get_template("computing_column_vm.vhdl")
+if args.dataflow == "OS":
+    template_files = []
+    if args.m == 1:
+        template_files.append("computing_column_vm.vhdl")
+        template_files.append("vm_rng_tb.vhdl")
+        template_files.append("steps_vm_rng.sh")
+    elif args.m > 1:
+        template_files.append("computing_column_vm.vhdl")
+        template_files.append("computing_columns_vm_constrained.vhdl")
+        template_files.append("vm_multicol_rng_tb.vhdl")
+        template_files.append("steps_vm_multicol_rng.sh")
 
-filename = directory + "/" + "computing_column_vm.vhdl"
-content = template.render(
-    design_params
-)
-with open(filename, mode="w", encoding="utf-8") as genfile:
-    genfile.write(content)
+    for idx, template_file in enumerate(template_files):
+        template = environment.get_template(template_file)
 
-template = environment.get_template("vm_rng_tb.vhdl")
-
-filename = directory + "/" + "vm_rng_tb.vhdl"
-content = template.render(
-    design_params
-)
-with open(filename, mode="w", encoding="utf-8") as genfile:
-    genfile.write(content)
-
-if args.debug == 1:
-    cp_command = "cp {} {}".format("templates/steps_vm_rng_debug.sh", directory)
-    os.popen(cp_command)
+        filename = directory + "/" + template_file
+        content = template.render(
+            design_params
+        )
+        with open(filename, mode="w", encoding="utf-8") as genfile:
+            genfile.write(content)
 
 print("Design is stored in the folder {}.".format(directory))
 

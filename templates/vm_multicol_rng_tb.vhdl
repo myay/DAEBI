@@ -1,40 +1,41 @@
-{# templates/vm_rng_tb_2.vhdl #}
-
-library ieee;
-use ieee.std_logic_1164.all;
+library IEEE;
+use IEEE.STD_LOGIC_1164.ALL;
+use ieee.numeric_std.all;
 use IEEE.MATH_REAL.all;
-USE ieee.numeric_std.ALL;
+use work.array_pack.all;
 
-entity vm_rng_tb is
-end vm_rng_tb;
+entity vm_multicol_rng_tb is
+end vm_multicol_rng_tb;
 
-architecture test of vm_rng_tb is
-  component computing_column_vm
+architecture test of vm_multicol_rng_tb is
+  component computing_columns_vm_constrained
     generic(
-      nr_xnor_gates: integer := {{ n }};
-      acc_data_width: integer := {{ dw }};
+      nr_computing_columns : integer := {{ m }}; -- Number of computing columns used in this controller
+      nr_xnor_gates : integer := {{ n }}; -- Number of XNOR gates used in each computing column
+      acc_data_width : integer := {{ dw }}; -- Width of the output of each computing column
       nr_popc_bits_o: integer := {{ popc_o }}
     );
     port(
-      clk           : in std_logic;
-      rst           : in std_logic;
-      xnor_inputs_1 : in std_logic_vector({{ n-1 }} downto 0); -- First inputs
-      xnor_inputs_2 : in std_logic_vector({{ n-1 }} downto 0); -- Second inputs
-      threshold_in  : in std_logic_vector({{ dw-1 }} downto 0); -- Threshold data
-      o_data_cc     : out std_logic_vector({{ dw-1 }} downto 0); -- Output data
-      less_cc : out std_logic;
-      eq_cc : out std_logic
+      clk : in std_logic;
+      reset : in std_logic;
+      xnor_inputs_1 : in array_2d_data; -- First inputs
+      xnor_inputs_2 : in array_2d_data; -- Second inputs
+      thresholds_in : in array_2d_th;
+      o_result : out array_2d_out; -- Outputs
+      less_results : out std_logic_vector({{ m-1 }} downto 0);
+      eq_results : out std_logic_vector({{ m-1 }} downto 0)
     );
   end component;
 
--- Inputs
 signal rst_t: std_logic := '0';
-signal input_1: std_logic_vector({{ n-1 }} downto 0) := "{{ neutral_input_1 }}";
-signal input_2: std_logic_vector({{ n-1 }} downto 0) := "{{ neutral_input_2 }}";
-signal input_threshold: std_logic_vector({{ dw-1 }} downto 0) := (others => '0');
--- Outputs
-signal output_cc: std_logic_vector({{ dw-1 }} downto 0);
-signal less_cc_t, eq_cc_t: std_logic := '0';
+signal inputs_1: array_2d_data := (others => (others => '0'));
+signal inputs_2: array_2d_data := (others => (others => '0'));
+signal input_thresholds: array_2d_th := (others => (others => '0'));
+signal outputs_cc: array_2d_out := (others => (others => '0'));
+
+signal less_t: std_logic_vector({{ m-1 }} downto 0);
+signal eq_t: std_logic_vector({{ m-1 }} downto 0);
+
 signal clk_t: std_logic := '0';
 constant clk_period : time := 2 ns;
 -- Workload definition
@@ -46,34 +47,27 @@ constant beta_plus_half : real := 1.5*real(beta/2);
 -- After how many clock cycles the accumulator should be reset
 constant reset_it: integer := integer(ceil(real(beta)/real({{ n }})));
 -- Total amount of iterations (input applications) that need to be performed
-{% if debug == 1 %}
-constant max_iterations: integer := 200;--integer(alpha*delta*reset_it);
-{% else %}
-constant max_iterations: integer := integer(alpha*delta*reset_it);
-{% endif %}
+constant max_iterations: integer := 50;--integer(alpha*delta*reset_it);
 constant delay_cycles: integer := integer(floor(real(max_iterations)/real(reset_it)));
-{% if debug == 1 %}
-constant total_clockc: integer := 200;--max_iterations + delay_cycles + 10;
-{% else %}
-constant total_clockc: integer := max_iterations + delay_cycles + {{ reset_pipe_delay }};
-{% endif %}
+constant total_clockc: integer := 50;--max_iterations + delay_cycles + {{ reset_pipe_delay }};
 
 begin
-  computing_column_test: computing_column_vm
+  computing_columns_test: computing_columns_vm_constrained
     generic map(
+      nr_computing_columns => {{ m }},
       nr_xnor_gates => {{ n }},
       acc_data_width => {{ dw }},
       nr_popc_bits_o => {{ popc_o }}
     )
     port map(
       clk => clk_t,
-      rst => rst_t,
-      xnor_inputs_1 => input_1,
-      xnor_inputs_2 => input_2,
-      threshold_in => input_threshold,
-      o_data_cc => output_cc,
-      less_cc => less_cc_t,
-      eq_cc => eq_cc_t
+      reset => rst_t,
+      xnor_inputs_1 => inputs_1,
+      xnor_inputs_2 => inputs_2,
+      thresholds_in => input_thresholds,
+      o_result => outputs_cc,
+      less_results => less_t,
+      eq_results => eq_t
     );
 
   -- Clock generation process
@@ -137,27 +131,30 @@ begin
       while j < max_iterations loop
         -- report "j = " & integer'image(j);
         if k = reset_it then
-          {% if debug == 1 %}
-          report "Reset.";
-          {% endif %}
           acc_result := 0;
           k := 0;
-          -- Apply neutral elements
-          input_1 <= "{{ neutral_input_1 }}";
-          input_2 <= "{{ neutral_input_2 }}";
+          -- Apply neutral elements to all columns
+          for i in 0 to {{ m-1 }} loop
+            inputs_1(i) <= "{{ neutral_input_1 }}";
+            inputs_2(i) <= "{{ neutral_input_2 }}";
+          end loop;
           rst_t <= '1';
           wait for clk_period;
           -- Apply next threshold
           -- report "The value of 'beta_minus' is " & real'image(beta_minus_half);
           -- report "The value of 'beta_plus' is " & real'image(beta_plus_half);
           rand_threshold := rand_int(beta_minus_half,beta_plus_half);
-          input_threshold <= std_logic_vector(to_unsigned(rand_threshold, input_threshold'length));
+          for i in 0 to {{ m-1 }} loop
+            input_thresholds(i) <= std_logic_vector(to_unsigned(rand_threshold, 16));
+          end loop;
         else
           rst_t <= '0';
           rand_int_1 := rand_lv({{ n }});
           rand_int_2 := rand_lv({{ n }});
-          input_1 <= rand_int_1;
-          input_2 <= rand_int_2;
+          for i in 0 to {{ m-1 }} loop
+            inputs_1(i) <= rand_int_1;
+            inputs_2(i) <= rand_int_2;
+          end loop;
           -- Compute for comparison
           res_xnor := rand_int_1 xnor rand_int_2;
           for i in 0 to {{ n-1 }} loop
@@ -170,9 +167,7 @@ begin
           -- Increment number of additions
           k := k + 1;
           res_popc := 0;
-          {% if debug == 1 %}
           report "The value of 'acc_result' is " & integer'image(acc_result);
-          {% endif %}
           wait for clk_period;
         end if;
         -- assert to_integer(unsigned(output_cc)) = acc_result report "Assertion violation. acc_result = " & integer'image(acc_result);
