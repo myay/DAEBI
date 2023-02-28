@@ -40,6 +40,7 @@ signal clk_t: std_logic := '0';
 constant clk_period : time := 2 ns;
 -- Workload definition
 constant alpha: integer := {{ alpha }};
+constant alpha_div_m: integer := integer(ceil(real(alpha)/real({{ m }})));
 constant beta: integer := {{ beta }};
 constant delta: integer := {{ delta }};
 constant beta_minus_half : real := 0.5*real(beta/2);
@@ -47,9 +48,17 @@ constant beta_plus_half : real := 1.5*real(beta/2);
 -- After how many clock cycles the accumulator should be reset
 constant reset_it: integer := integer(ceil(real(beta)/real({{ n }})));
 -- Total amount of iterations (input applications) that need to be performed
-constant max_iterations: integer := 50;--integer(alpha*delta*reset_it);
+{% if debug == 1 %}
+constant max_iterations: integer := 50;--integer(alpha_div_m*delta*reset_it);
+{% else %}
+constant max_iterations: integer := integer(alpha_div_m*delta*reset_it);
+{% endif %}
 constant delay_cycles: integer := integer(floor(real(max_iterations)/real(reset_it)));
+{% if debug == 1 %}
 constant total_clockc: integer := 50;--max_iterations + delay_cycles + {{ reset_pipe_delay }};
+{% else %}
+constant total_clockc: integer := max_iterations + delay_cycles + {{ reset_pipe_delay }};
+{% endif %}
 
 begin
   computing_columns_test: computing_columns_vm_constrained
@@ -131,6 +140,9 @@ begin
       while j < max_iterations loop
         -- report "j = " & integer'image(j);
         if k = reset_it then
+          {% if debug == 1 %}
+          report "Reset.";
+          {% endif %}
           acc_result := 0;
           k := 0;
           -- Apply neutral elements to all columns
@@ -167,7 +179,9 @@ begin
           -- Increment number of additions
           k := k + 1;
           res_popc := 0;
+          {% if debug == 1 %}
           report "The value of 'acc_result' is " & integer'image(acc_result);
+          {% endif %}
           wait for clk_period;
         end if;
         -- assert to_integer(unsigned(output_cc)) = acc_result report "Assertion violation. acc_result = " & integer'image(acc_result);
