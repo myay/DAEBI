@@ -98,9 +98,9 @@ begin
     begin
       -- Wait until first input is applied, and one cycle before that
       -- Wait until right timing
-      wait for (17 + ({{ sm_reset_delay_to_64 }}))*clk_period;
+      wait for ({{ sm_reset_delay_to_64 }})*clk_period;
       while i<total_clockc loop
-        if (i = (reset_it-3 + ({{ sm_reset_delay_to_64 }}))) then
+        if (i = (reset_it-3)) then
           reg_sel <= (others => '0');
           wait for 3*clk_period;
         else
