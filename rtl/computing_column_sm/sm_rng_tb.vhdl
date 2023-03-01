@@ -46,7 +46,7 @@ constant clk_period : time := 2 ns;
 -- Workload definition
 constant alpha: integer := 64;
 constant beta: integer := 576;
-constant delta: integer := 196;
+constant delta: integer := 4; -- Number of registers
 constant beta_minus_half : real := 0.5*real(beta/2);
 constant beta_plus_half : real := 1.5*real(beta/2);
 -- After how many clock cycles the accumulator should be reset
@@ -89,6 +89,24 @@ begin
         wait for clk_period/2;  -- Signal is '0'.
         clk_t <= '1';
         wait for clk_period/2;  -- Signal is '1'
+        i := i+1;
+      end loop;
+      wait;
+    end process;
+
+  -- Register select process
+  regsel_process: process
+    variable i: integer := 0;
+    begin
+      -- Wait until first input is applied, and one cycle before that
+      -- wait for 1.5*clk_period;
+      -- wait for clk_period/2;
+      -- Wait until right timing
+      wait for 17*clk_period;
+      while i<total_clockc loop
+        -- TODO consider reset cycle
+        reg_sel <= std_logic_vector(unsigned(reg_sel) + 1);
+        wait for 3*clk_period;
         i := i+1;
       end loop;
       wait;
@@ -138,7 +156,7 @@ begin
       -- report "ceil:  " & integer'image(reset_it);
       -- report "ceil:  " & integer'image(total_it);
 
-      -- Init all registers to 0
+      -- Initialize all registers to 0
       for i in 0 to 3 loop
         reg_file_sim(i) := 0;
       end loop;
@@ -154,7 +172,7 @@ begin
           -- Apply neutral elements
           input_1 <= "0101010101010101010101010101010101010101010101010101010101010101";
           input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
-          reg_sel <= "00";
+          -- reg_sel <= "00";
           rst_t <= '1';
           wait for 3*clk_period;
           -- Apply next threshold
@@ -168,30 +186,28 @@ begin
           rand_int_1 := rand_lv(64);
           -- Only apply new weights when
           rand_int_2 := rand_lv(64);
-          input_1 <= rand_int_1;
-          input_2 <= rand_int_2;
-          -- Compute for comparison
-          res_xnor := rand_int_1 xnor rand_int_2;
-          for i in 0 to 63 loop
-            if (res_xnor(i)='1') then
-              res_popc := res_popc + 1;
-            end if;
-          end loop;
-          -- report "The value of 'res_popc' is " & integer'image(res_popc);
-          if j /= 0 then
+          if j > 1 then
+            -- DUT
+            input_1 <= rand_int_1;
+            input_2 <= rand_int_2;
+            -- reg_sel <= std_logic_vector(unsigned(reg_sel) + 1);
+            -- Simulation
+            res_xnor := rand_int_1 xnor rand_int_2;
+            for i in 0 to 63 loop
+              if (res_xnor(i)='1') then
+                res_popc := res_popc + 1;
+              end if;
+            end loop;
             reg_file_sim(reg_sel_sim) := reg_file_sim(reg_sel_sim) + res_popc;
+            report "---";
+            report "The popc val is " & integer'image(res_popc);
+            report "The address is " & integer'image(reg_sel_sim);
+            report "The value of register is " & integer'image(reg_file_sim(reg_sel_sim));
+            reg_sel_sim := reg_sel_sim + 1;
+            reg_sel_sim := reg_sel_sim mod 4;
           end if;
-          -- Increment number of additions
-          report "The address is " & integer'image(reg_sel_sim);
-          report "The popc val is " & integer'image(res_popc);
-          report "The value of register is " & integer'image(reg_file_sim(reg_sel_sim));
-          report "---";
           k := k + 1;
           res_popc := 0;
-          if j /= 0 then
-            reg_sel <= std_logic_vector(unsigned(reg_sel) + 1);
-            reg_sel_sim := to_integer(unsigned(reg_sel));
-          end if;  
           wait for 3*clk_period;
         end if;
         j := j+1;
