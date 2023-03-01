@@ -54,9 +54,9 @@ constant reset_it: integer := delta*integer(ceil(real(beta)/real(64)));
 -- After how many clock cycles the reset value (0) is at the output
 constant reset_delay: integer := 11;
 -- Total amount of iterations (input applications) that need to be performed
-constant max_iterations: integer := 100;--100000;--integer(alpha*delta*reset_it);
+constant max_iterations: integer := 1000;--100000;--integer(alpha*delta*reset_it);
 constant delay_cycles: integer := integer(floor(real(max_iterations)/real(reset_it)));
-constant total_clockc: integer := 100;--100000;--max_iterations + delay_cycles + 10;
+constant total_clockc: integer := 1000;--100000;--max_iterations + delay_cycles + 10;
 
 begin
   computing_column_test: computing_column_sm
@@ -99,13 +99,15 @@ begin
     variable i: integer := 0;
     begin
       -- Wait until first input is applied, and one cycle before that
-      -- wait for 1.5*clk_period;
-      -- wait for clk_period/2;
       -- Wait until right timing
       wait for 17*clk_period;
       while i<total_clockc loop
-        -- TODO consider reset cycle
-        reg_sel <= std_logic_vector(unsigned(reg_sel) + 1);
+        if (i = (reset_it-3)) then
+          reg_sel <= (others => '0');
+          wait for 3*clk_period;
+        else
+          reg_sel <= std_logic_vector(unsigned(reg_sel) + 1);
+        end if;
         wait for 3*clk_period;
         i := i+1;
       end loop;
@@ -164,7 +166,7 @@ begin
       wait for clk_period/2;
       while j < max_iterations loop
         if k = reset_it then
-          report "Reset.";
+          report "Reset!!!";
           for i in 0 to 3 loop
             reg_file_sim(i) := 0;
           end loop;
@@ -172,9 +174,11 @@ begin
           -- Apply neutral elements
           input_1 <= "0101010101010101010101010101010101010101010101010101010101010101";
           input_2 <= "1010101010101010101010101010101010101010101010101010101010101010";
-          -- reg_sel <= "00";
+          reg_sel_sim := 0;
           rst_t <= '1';
-          wait for 3*clk_period;
+          wait for clk_period;
+          rst_t <= '0';
+          wait for 2*clk_period;
           -- Apply next threshold
           -- report "The value of 'beta_minus' is " & real'image(beta_minus_half);
           -- report "The value of 'beta_plus' is " & real'image(beta_plus_half);
@@ -199,10 +203,10 @@ begin
               end if;
             end loop;
             reg_file_sim(reg_sel_sim) := reg_file_sim(reg_sel_sim) + res_popc;
-            report "---";
             report "The popc val is " & integer'image(res_popc);
             report "The address is " & integer'image(reg_sel_sim);
             report "The value of register is " & integer'image(reg_file_sim(reg_sel_sim));
+            report "---";
             reg_sel_sim := reg_sel_sim + 1;
             reg_sel_sim := reg_sel_sim mod 4;
           end if;
