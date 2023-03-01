@@ -42,21 +42,21 @@ signal output_cc: std_logic_vector(15 downto 0);
 signal less_cc_t, eq_cc_t: std_logic := '0';
 signal clk_t: std_logic := '0';
 constant clk_period : time := 2 ns;
--- constant max_clock_cyles: integer := 60;
 -- Workload definition
 constant alpha: integer := 64;
 constant beta: integer := 576;
 constant delta: integer := 4; -- Number of registers
+constant rrf: integer := 1; -- Register reduction factor
 constant beta_minus_half : real := 0.5*real(beta/2);
 constant beta_plus_half : real := 1.5*real(beta/2);
 -- After how many clock cycles the accumulator should be reset
-constant reset_it: integer := delta*integer(ceil(real(beta)/real(64)));
+constant reset_it: integer := integer(ceil(real(delta)/real(rrf)))*integer(ceil(real(beta)/real(64)));
 -- After how many clock cycles the reset value (0) is at the output
 constant reset_delay: integer := 11;
 -- Total amount of iterations (input applications) that need to be performed
-constant max_iterations: integer := 1000;--100000;--integer(alpha*delta*reset_it);
+constant max_iterations: integer := 1000;--100000;--rrf*integer(alpha*reset_it);
 constant delay_cycles: integer := integer(floor(real(max_iterations)/real(reset_it)));
-constant total_clockc: integer := 1000;--100000;--max_iterations + delay_cycles + 10;
+constant total_clockc: integer := 1000;--100000;--max_iterations + delay_cycles + 11;
 
 begin
   computing_column_test: computing_column_sm
@@ -155,11 +155,8 @@ begin
     end function;
 
     begin
-      -- report "ceil:  " & integer'image(reset_it);
-      -- report "ceil:  " & integer'image(total_it);
-
       -- Initialize all registers to 0
-      for i in 0 to 3 loop
+      for i in 0 to (integer(ceil(real(delta)/real(rrf)))-1) loop
         reg_file_sim(i) := 0;
       end loop;
 
@@ -167,7 +164,7 @@ begin
       while j < max_iterations loop
         if k = reset_it then
           report "Reset!!!";
-          for i in 0 to 3 loop
+          for i in 0 to (integer(ceil(real(delta)/real(rrf)))-1) loop
             reg_file_sim(i) := 0;
           end loop;
           k := 0;
@@ -208,7 +205,7 @@ begin
             report "The value of register is " & integer'image(reg_file_sim(reg_sel_sim));
             report "---";
             reg_sel_sim := reg_sel_sim + 1;
-            reg_sel_sim := reg_sel_sim mod 4;
+            reg_sel_sim := reg_sel_sim mod integer(ceil(real(delta)/real(rrf)));
           end if;
           k := k + 1;
           res_popc := 0;
