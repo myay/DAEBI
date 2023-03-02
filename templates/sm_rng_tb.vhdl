@@ -45,7 +45,7 @@ constant clk_period : time := 2 ns;
 -- Workload definition
 constant alpha: integer := {{ alpha }};
 constant beta: integer := {{ beta }};
-constant delta: integer := {{ nr_regs }}; -- Number of registers
+constant delta: integer := {{ delta }};
 constant rrf: integer := {{ rrf }}; -- Register reduction factor
 constant beta_minus_half : real := 0.5*real(beta/2);
 constant beta_plus_half : real := 1.5*real(beta/2);
@@ -117,11 +117,12 @@ begin
     variable seed1, seed2 : integer := 999; -- Seeds for reproducable random numbers
     variable rand_real_val : real; -- For storing random real value
     variable rand_int_val : integer; -- For storing random integer value
-    variable rand_int_1 : std_logic_vector({{ n-1 }} downto 0);
-    variable rand_int_2 : std_logic_vector({{ n-1 }} downto 0);
+    variable rand_int_1 : std_logic_vector({{ n-1 }} downto 0) := "{{ neutral_input_1 }}";
+    variable rand_int_2 : std_logic_vector({{ n-1 }} downto 0) := "{{ neutral_input_2 }}";
     variable res_xnor : std_logic_vector({{ n-1 }} downto 0);
     variable j: integer := 0; -- For iterating until there are no more clock cycles
     variable k: integer := 0; -- For counting the number of additions performed
+    variable m: integer := 0; -- For counting number of iterations until new weights should be applied
     variable rand_threshold : integer;
     variable reg_file_sim : reg_file;
     variable reg_sel_sim: integer := 0;
@@ -160,6 +161,17 @@ begin
 
       wait for clk_period/2;
       while j < max_iterations loop
+
+        -- Only apply new weights when the iterations went through all registers
+        if m = integer(ceil(real(delta)/real(rrf))) then
+          if j > 1 then
+            rand_int_2 := rand_lv({{ n }});
+            input_2 <= rand_int_2;
+            m := 0;
+          end if;
+        end if;
+        m := m + 1;
+
         if k = reset_it then
           report "Reset!!!";
           for i in 0 to (integer(ceil(real(delta)/real(rrf)))-1) loop
@@ -183,13 +195,11 @@ begin
           rst_t <= '0';
           -- Apply new inputs every third clock cycle
           rand_int_1 := rand_lv({{ n }});
-          -- Only apply new weights when
-          rand_int_2 := rand_lv({{ n }});
+          -- rand_int_2 := rand_lv({{ n }});
           if j > 1 then
             -- DUT
             input_1 <= rand_int_1;
-            input_2 <= rand_int_2;
-            -- reg_sel <= std_logic_vector(unsigned(reg_sel) + 1);
+            -- input_2 <= rand_int_2;
             -- Simulation
             res_xnor := rand_int_1 xnor rand_int_2;
             for i in 0 to {{ n-1 }} loop

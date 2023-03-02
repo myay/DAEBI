@@ -71,7 +71,7 @@ parser.add_argument('--n', type=int, default=64, help='Number of XNOR gates per 
 parser.add_argument('--m', type=int, default=1, help='Number of columns in accelerator')
 parser.add_argument('--dw', type=int, default=64, help='Width of datapath')
 parser.add_argument('--nrregs', type=int, default=1, help='Number of registers')
-parser.add_argument('--rrf', type=int, default=1, help='Register reduction factor')
+parser.add_argument('--rrf', type=int, default=1, help='Register reduction factor, calculate by ceil(delta/nrregs)')
 parser.add_argument('--alpha', type=int, default=64, help='alpha')
 parser.add_argument('--beta', type=int, default=576, help='beta')
 parser.add_argument('--delta', type=int, default=196, help='delta')
