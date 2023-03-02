@@ -157,7 +157,7 @@ begin
           -- report "The value of 'beta_plus' is " & real'image(beta_plus_half);
           rand_threshold := rand_int(beta_minus_half,beta_plus_half);
           for i in 0 to {{ m-1 }} loop
-            input_thresholds(i) <= std_logic_vector(to_unsigned(rand_threshold, 16));
+            input_thresholds(i) <= std_logic_vector(to_unsigned(rand_threshold, {{ dw }}));
           end loop;
         else
           rst_t <= '0';
