@@ -16,19 +16,7 @@ sources_os = [
 # "rtl/computing_column_vm/computing_column_vm.vhdl",
 ]
 
-reset_pipe_delay_dict_os = {
-8: 6,
-16: 7,
-32: 8,
-64: 9,
-128: 10,
-256: 11,
-512: 12,
-1024: 13,
-2048: 14,
-}
-
-reset_pipe_delay_dict_ws = {
+reset_pipe_delay_dict = {
 8: 6,
 16: 7,
 32: 8,
@@ -96,10 +84,8 @@ sources_tocopy = None
 rst_pipe_delay = None
 if args.dataflow == "OS":
     sources_tocopy = sources_os
-    rst_pipe_delay = reset_pipe_delay_dict_os[args.n]
 if args.dataflow == "WS":
     sources_tocopy = sources_ws
-    rst_pipe_delay = reset_pipe_delay_dict_ws[args.n]
 
 for source in sources_tocopy:
     cp_command = "cp {} {}/{}".format(source, directory, os.path.basename(source))
@@ -123,7 +109,7 @@ design_params = {
 "m": args.m,
 "dw": args.dw,
 "popc_o": popc_bits_out,
-"reset_pipe_delay": rst_pipe_delay,
+"reset_pipe_delay": reset_pipe_delay_dict[args.n],
 "alpha": args.alpha,
 "beta": args.beta,
 "delta": args.delta,

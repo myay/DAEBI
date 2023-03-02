@@ -52,9 +52,18 @@ constant beta_plus_half : real := 1.5*real(beta/2);
 -- After how many clock cycles the accumulator should be reset
 constant reset_it: integer := integer(ceil(real(delta)/real(rrf)))*integer(ceil(real(beta)/real({{ n }})));
 -- Total amount of iterations (input applications) that need to be performed
+{% if debug == 1 %}
 constant max_iterations: integer := 1000;--100000;--rrf*integer(alpha*reset_it);
+{% else %}
+constant max_iterations: integer := rrf*integer(alpha*reset_it);
+{% endif %}
 constant delay_cycles: integer := integer(floor(real(max_iterations)/real(reset_it)));
+{% if debug == 1 %}
 constant total_clockc: integer := 1000;--100000;--max_iterations + delay_cycles + {{ reset_pipe_delay }};
+{% else %}
+constant total_clockc: integer := (max_iterations+delay_cycles);-- + {{ reset_pipe_delay }};
+constant total_clockc3: integer := 3*total_clockc + {{ reset_pipe_delay }};
+{% endif %}
 
 begin
   computing_column_test: computing_column_sm
@@ -81,7 +90,7 @@ begin
   clk_process: process
     variable i: integer := 0;
     begin
-      while i<total_clockc loop
+      while i<total_clockc3 loop
         -- clk_t <= not clk_t after clk_period/2;
         clk_t <= '0';
         wait for clk_period/2;  -- Signal is '0'.
@@ -173,7 +182,9 @@ begin
         m := m + 1;
 
         if k = reset_it then
+          {% if debug == 1 %}
           report "Reset!!!";
+          {% endif %}
           for i in 0 to (integer(ceil(real(delta)/real(rrf)))-1) loop
             reg_file_sim(i) := 0;
           end loop;
@@ -208,10 +219,12 @@ begin
               end if;
             end loop;
             reg_file_sim(reg_sel_sim) := reg_file_sim(reg_sel_sim) + res_popc;
+            {% if debug == 1 %}
             report "The popc val is " & integer'image(res_popc);
             report "The address is " & integer'image(reg_sel_sim);
             report "The value of register is " & integer'image(reg_file_sim(reg_sel_sim));
             report "---";
+            {% endif %}
             reg_sel_sim := reg_sel_sim + 1;
             reg_sel_sim := reg_sel_sim mod integer(ceil(real(delta)/real(rrf)));
           end if;
