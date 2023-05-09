@@ -13,6 +13,9 @@ sources_os = [
 "rtl/popcount/popcountGenerator/popcount.vhdl",
 "rtl/accumulator/accumulator.vhdl",
 "rtl/comparator/comparator.vhdl",
+"rtl/memory/inputs_rom.vhdl",
+"rtl/memory/weights_rom.vhdl",
+"rtl/memory/threshold_rom.vhdl",
 # "rtl/computing_column_vm/computing_column_vm.vhdl",
 ]
 
@@ -50,6 +53,9 @@ sources_ws = [
 "rtl/regfile/regfile.vhdl",
 "rtl/accumulator_multiregs/accumulator_multiregs.vhdl",
 "rtl/comparator/comparator.vhdl",
+"rtl/memory/inputs_rom.vhdl",
+"rtl/memory/weights_rom.vhdl",
+"rtl/memory/threshold_rom.vhdl",
 # "rtl/computing_column_sm/computing_column_sm.vhdl",
 ]
 
@@ -119,7 +125,8 @@ design_params = {
 "nr_regs": args.nrregs,
 "awa": int(math.ceil(math.log2(args.nrregs))),
 "rrf": args.rrf,
-"sm_reset_delay_to_64": reset_delay_to_64_wm[args.n]
+"sm_reset_delay_to_64": reset_delay_to_64_wm[args.n],
+"ind_max": int(math.ceil(args.beta/args.n))
 }
 
 environment = Environment(loader=FileSystemLoader("templates/"))
@@ -131,6 +138,9 @@ if args.dataflow == "OS":
         template_files.append("vm_rng_tb.vhdl")
         template_files.append("steps_vm_rng.sh")
     elif args.m > 1:
+        template_files.append("controller_multi_vm_mem.vhdl")
+        template_files.append("controller_vm_v2.vhdl")
+        template_files.append("computing_columns_vm.vhdl")
         template_files.append("computing_column_vm.vhdl")
         template_files.append("computing_columns_vm_constrained.vhdl")
         template_files.append("vm_multicol_rng_tb.vhdl")
@@ -141,6 +151,9 @@ if args.dataflow == "WS":
         template_files.append("sm_rng_tb.vhdl")
         template_files.append("steps_sm_rng.sh")
     elif args.m > 1:
+        template_files.append("controller_multi_sm_mem.vhdl")
+        template_files.append("controller_sm_mem.vhdl")
+        template_files.append("computing_columns_sm.vhdl")
         template_files.append("computing_column_sm.vhdl")
         template_files.append("computing_columns_sm_constrained.vhdl")
         template_files.append("sm_multicol_rng_tb.vhdl")
