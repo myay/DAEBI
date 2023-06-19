@@ -32,9 +32,10 @@ architecture rtl of controller_multi_sm is
 	signal inputs       : std_logic_vector( nr_xnor_gates-1 downto 0); -- Data input for input values
     signal weights      : std_logic_vector( (nr_xnor_gates*nr_controller)-1 downto 0); -- Data input for weight values
 	signal threshold    : std_logic_vector( (acc_data_width*nr_controller)-1 downto 0); -- Threshold value to compare accumulated result
-	signal addr_inputs  : std_logic_vector( (nr_controller*12)-1 downto 0);         -- Address output for input memory
-    signal addr_weights : std_logic_vector( (nr_controller*11) - 1 downto 0);         -- Address output for weight memory
-	signal addr_threshold : std_logic_vector( (nr_controller*7) - 1 downto 0);         -- Address output for threshold memory
+	signal addr_inputs  : std_logic_vector( (nr_controller*{{inputs_addr_size + ind_bits}})-1 downto 0);         -- Address output for input memory
+    -- signal addr_inputs  : std_logic_vector( {{inputs_addr_size + ind_bits-1}} downto 0);         -- Address output for input memory
+    signal addr_weights : std_logic_vector( (nr_controller*{{weights_addr_size + ind_bits}}) - 1 downto 0);         -- Address output for weight memory
+	signal addr_threshold : std_logic_vector( (nr_controller*{{weights_addr_size}}) - 1 downto 0);         -- Address output for threshold memory
 
 
 begin
@@ -57,8 +58,10 @@ begin
 		  i_inputs => inputs,
 		  i_weights => weights((nr_xnor_gates*(i+1))-1 downto (nr_xnor_gates*i)),
 		  i_threshold => threshold((acc_data_width*(i+1))-1 downto (acc_data_width*i)),
-		  o_addr_inputs => addr_inputs( (12*(i+1)) - 1 downto 12*i ),
-		  o_addr_weights => addr_weights( (11*(i+1)) - 1 downto 11*i ),
+		  o_addr_inputs => addr_inputs( ({{inputs_addr_size + ind_bits}}*(i+1)) - 1 downto {{inputs_addr_size + ind_bits}}*i ),
+		  -- o_addr_inputs => addr_inputs( {{inputs_addr_size + ind_bits-1}} downto 0),
+		  o_addr_weights => addr_weights( ({{weights_addr_size + ind_bits}}*(i+1)) - 1 downto {{weights_addr_size + ind_bits}}*i ),
+		  o_addr_threshold => addr_threshold( ({{weights_addr_size}}*(i+1)) - 1 downto {{weights_addr_size}}*i ),
 		  o_result => o_result((acc_data_width*(i+1))-1 downto (acc_data_width*i)),
 		  o_less => o_less(i),
 		  o_equal => o_equal(i)
@@ -69,14 +72,14 @@ begin
 	  inst_weights_rom : entity work.weights_rom(rtl)
 		generic map(
 			output_size => {{ n }},
-			index_size => 4,
+			index_size => {{ ind_bits }},
 			max_index => {{ ind_max }}
 		)
 		port map(	
 			clk => clk,							
 			reset => reset,
-			address => addr_weights( (11*(i+1)) - 1 downto 11*i + 4),
-			index => addr_weights( 11*i + 3 downto 11*i),
+			address => addr_weights( ({{weights_addr_size + ind_bits}}*(i+1)) - 1 downto {{weights_addr_size + ind_bits}}*i + {{ ind_bits}}),
+			index => addr_weights( {{weights_addr_size + ind_bits}}*i + {{ ind_bits -1}} downto {{weights_addr_size + ind_bits}}*i),
 			weights_out => weights( (nr_xnor_gates*(i+1))-1 downto nr_xnor_gates*i)
 		);
   end generate;
@@ -86,7 +89,7 @@ begin
 		port map(	
 			clk => clk,							
 			reset => reset,
-			add => addr_threshold( (7*(i+1)) - 1 downto 7*i),
+			add => addr_threshold( ({{weights_addr_size}}*(i+1)) - 1 downto {{weights_addr_size}}*i),
 			threshold_out => threshold( (acc_data_width*(i+1))-1 downto acc_data_width*i)
 		);
   end generate;
@@ -95,14 +98,14 @@ begin
     inst_inputs_rom : entity work.inputs_rom(rtl)
 		generic map(
 			output_size => {{ n }},
-			index_size => 4,
+			index_size => {{ ind_bits }},
 			max_index => {{ ind_max }}
 		)
 		port map(	
 			clk => clk,							
 			reset => reset,
-			address => addr_inputs( 11 downto 4),
-			index => addr_inputs( 3 downto 0),
+			address => addr_inputs( {{inputs_addr_size + ind_bits-1}} downto {{ ind_bits}}),
+			index => addr_inputs( {{ ind_bits -1}} downto 0),
 			inputs_out => inputs
 		);
 

@@ -1,6 +1,7 @@
 import os
 import math
 import argparse
+import random
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -13,9 +14,6 @@ sources_os = [
 "rtl/popcount/popcountGenerator/popcount.vhdl",
 "rtl/accumulator/accumulator.vhdl",
 "rtl/comparator/comparator.vhdl",
-"rtl/memory/inputs_rom.vhdl",
-"rtl/memory/weights_rom.vhdl",
-"rtl/memory/threshold_rom.vhdl",
 # "rtl/computing_column_vm/computing_column_vm.vhdl",
 ]
 
@@ -53,9 +51,6 @@ sources_ws = [
 "rtl/regfile/regfile.vhdl",
 "rtl/accumulator_multiregs/accumulator_multiregs.vhdl",
 "rtl/comparator/comparator.vhdl",
-"rtl/memory/inputs_rom.vhdl",
-"rtl/memory/weights_rom.vhdl",
-"rtl/memory/threshold_rom.vhdl",
 # "rtl/computing_column_sm/computing_column_sm.vhdl",
 ]
 
@@ -69,6 +64,7 @@ parser.add_argument('--rrf', type=int, default=1, help='Register reduction facto
 parser.add_argument('--alpha', type=int, default=64, help='alpha')
 parser.add_argument('--beta', type=int, default=576, help='beta')
 parser.add_argument('--delta', type=int, default=196, help='delta')
+parser.add_argument('--memory', type=int, default=0, help='Generate with or without memory')
 parser.add_argument('--debug', type=int, default=0, help='Debug mode or production mode')
 args = parser.parse_args()
 
@@ -108,6 +104,42 @@ for i in range(args.n):
     else:
         neutral_input_1 += "0"
         neutral_input_2 += "1"
+		
+# create random memory data
+weights_rom_data = ""
+inputs_rom_data = ""
+threshold_rom_data = ""
+# weights rom
+for i in range(args.alpha):
+	data = ""
+	for j in range(args.beta):
+		data += str(random.randint(0,1))
+	weights_rom_data += '\t\t{index} => "{data}" '.format(index = i, data = data)
+	if i < args.alpha-1:
+		weights_rom_data += ", \n"
+		
+# inputs rom
+for i in range(args.delta):
+	data = ""
+	for j in range(args.beta):
+		data += str(random.randint(0,1))
+	inputs_rom_data += '\t\t{index} => "{data}" '.format(index = i, data = data)
+	if i < args.delta-1:
+		inputs_rom_data += ", \n"
+		
+# threshold rom
+for i in range(args.alpha):
+	data = ""
+	for j in range(args.dw):
+		data += str(random.randint(0,1))
+	threshold_rom_data += '\t\t{index} => "{data}" '.format(index = i, data = data)
+	if i < args.alpha-1:
+		threshold_rom_data += ", \n"
+
+ind_max = int(math.ceil(args.beta/args.n))
+ind_bits = int(math.ceil(math.log2(ind_max)))
+
+
 
 # Create design from template
 design_params = {
@@ -126,7 +158,13 @@ design_params = {
 "awa": int(math.ceil(math.log2(args.nrregs))),
 "rrf": args.rrf,
 "sm_reset_delay_to_64": reset_delay_to_64_wm[args.n],
-"ind_max": int(math.ceil(args.beta/args.n))
+"ind_max": ind_max,
+"ind_bits": ind_bits,
+"weights_addr_size": int(math.ceil(math.log2(args.alpha))),
+"inputs_addr_size": int(math.ceil(math.log2(args.delta))),
+"weights_rom_data": weights_rom_data,
+"inputs_rom_data": inputs_rom_data,
+"threshold_rom_data": threshold_rom_data
 }
 
 environment = Environment(loader=FileSystemLoader("templates/"))
@@ -138,8 +176,12 @@ if args.dataflow == "OS":
         template_files.append("vm_rng_tb.vhdl")
         template_files.append("steps_vm_rng.sh")
     elif args.m > 1:
-        template_files.append("controller_multi_vm_mem.vhdl")
-        template_files.append("controller_vm_v2.vhdl")
+        if args.memory == 1:
+            template_files.append("controller_multi_vm_mem.vhdl")
+            template_files.append("controller_vm_v2_mem.vhdl")
+        else:
+            template_files.append("controller_vm_v2.vhdl")
+		
         template_files.append("computing_columns_vm.vhdl")
         template_files.append("computing_column_vm.vhdl")
         template_files.append("computing_columns_vm_constrained.vhdl")
@@ -151,13 +193,21 @@ if args.dataflow == "WS":
         template_files.append("sm_rng_tb.vhdl")
         template_files.append("steps_sm_rng.sh")
     elif args.m > 1:
-        template_files.append("controller_multi_sm_mem.vhdl")
-        template_files.append("controller_sm_mem.vhdl")
+        if args.memory == 1:
+            template_files.append("controller_multi_sm_mem.vhdl")
+            template_files.append("controller_sm_mem.vhdl")
+        else:
+            template_files.append("controller_sm.vhdl")
         template_files.append("computing_columns_sm.vhdl")
         template_files.append("computing_column_sm.vhdl")
         template_files.append("computing_columns_sm_constrained.vhdl")
         template_files.append("sm_multicol_rng_tb.vhdl")
         template_files.append("steps_sm_multicol_rng.sh")
+
+if args.memory == 1:
+    template_files.append("weights_rom.vhdl")
+    template_files.append("inputs_rom.vhdl")
+    template_files.append("threshold_rom.vhdl")
 
 for idx, template_file in enumerate(template_files):
     template = environment.get_template(template_file)

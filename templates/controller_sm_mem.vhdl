@@ -23,8 +23,9 @@ entity controller_sm is
     i_inputs       : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Data input for input values
     i_weights      : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Data input for weight values
 	i_threshold    : in std_logic_vector(acc_data_width-1 downto 0); -- Threshold value to compare accumulated result
-    o_addr_inputs  : out std_logic_vector(11 downto 0);         -- Address output for input memory
-    o_addr_weights : out std_logic_vector(10 downto 0);         -- Address output for weight memory
+    o_addr_inputs  : out std_logic_vector({{inputs_addr_size + ind_bits -1}} downto 0);         -- Address output for input memory
+    o_addr_weights : out std_logic_vector({{weights_addr_size + ind_bits -1}} downto 0);         -- Address output for weight memory
+	o_addr_threshold : out std_logic_vector({{weights_addr_size-1}} downto 0);         -- Address output for threshold memory
     o_result       : out std_logic_vector(acc_data_width-1 downto 0);
     o_less         : out std_logic;
     o_equal        : out std_logic;
@@ -55,8 +56,8 @@ architecture rtl of controller_sm is
   signal write_delay : integer := 0;
   
   signal ind_max : integer := {{ ind_max }};
-  signal addr_weights_max : integer := 9;
-  signal addr_inputs_max : integer := 9;
+  signal addr_weights_max : integer := {{alpha-1}};	-- nr of weights
+  signal addr_inputs_max : integer := {{delta-1}};	-- nr of inputs
 
   signal addr_inputs : integer := 0;
 
@@ -102,8 +103,8 @@ begin
 		elsif (i_valid = '1') then
 			if write_delay <= 0 then
 				-- set address for memory
-				o_addr_inputs <= std_logic_vector(to_unsigned(addr_inputs, 8)) & std_logic_vector(to_unsigned(ind, 4));
-				o_addr_weights <= std_logic_vector(to_unsigned(addr_weights, 7)) & std_logic_vector(to_unsigned(ind, 4));
+				o_addr_inputs <= std_logic_vector(to_unsigned(addr_inputs, {{inputs_addr_size}})) & std_logic_vector(to_unsigned(ind, {{ind_bits}}));
+				o_addr_weights <= std_logic_vector(to_unsigned(addr_weights, {{weights_addr_size}})) & std_logic_vector(to_unsigned(ind, {{ind_bits}}));
 				
 				-- send data from memory to computing column
 				for i in 0 to nr_computing_columns-1 loop
