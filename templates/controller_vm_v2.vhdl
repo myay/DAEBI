@@ -21,10 +21,10 @@ entity controller_vm_v2 is
     i_inputs       : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Data input for input values
     i_weights      : in std_logic_vector(nr_xnor_gates-1 downto 0); -- Data input for weight values
 	i_threshold    : in std_logic_vector(acc_data_width-1 downto 0); -- Threshold value to compare accumulated result
-    o_addr_inputs  : out std_logic_vector(11 downto 0);         -- Address output for input memory
-    o_addr_weights : out std_logic_vector(10 downto 0);         -- Address output for weight memory
-    o_addr_threshold : out std_logic_vector(6 downto 0);         -- Address output for threshold memory
-    o_result       : out std_logic_vector(acc_data_width-1 downto 0);
+    -- o_addr_inputs  : out std_logic_vector({{inputs_addr_size + ind_bits -1}} downto 0);         -- Address output for input memory
+    -- o_addr_weights : out std_logic_vector({{weights_addr_size + ind_bits -1}} downto 0);         -- Address output for weight memory
+    -- o_addr_threshold : out std_logic_vector({{weights_addr_size-1}} downto 0);         -- Address output for threshold memory
+    -- o_result       : out std_logic_vector(acc_data_width-1 downto 0);
     o_less         : out std_logic;
     o_equal        : out std_logic;
 	o_finished	   : out std_logic
@@ -43,16 +43,16 @@ architecture rtl of controller_vm_v2 is
   signal cnt : integer := 0;                 -- signal to store the currently used computing column
   
   signal reset_cc : std_logic := '0';
-  signal rst : std_logic := '0';
+  -- signal rst : std_logic := '0';
   
-  signal addr_weights : integer := 0;
-  signal ind : integer := 0;
+  -- signal addr_weights : integer := 0;
+  -- signal ind : integer := 0;
   
-  signal ind_max : integer := {{ ind_max }};			-- beta_gamma / output_bits
-  signal addr_weights_max : integer := 63;	-- nr of weights
-  signal addr_inputs_max : integer := 195;	-- nr of inputs
+  -- signal ind_max : integer := {{ ind_max }};			-- beta_gamma / output_bits
+  -- signal addr_weights_max : integer := {{alpha-1}};	-- nr of weights
+  -- signal addr_inputs_max : integer := {{delta-1}};	-- nr of inputs
 
-  signal addr_inputs : integer := 0;
+  -- signal addr_inputs : integer := 0;
   
   
 
@@ -78,45 +78,45 @@ begin
     );
 
   -- Calculate address for input
-  process(clk) begin
-	if rising_edge(clk) then
-		if(reset = '1') then
-			addr_weights <= 0;
-			addr_inputs  <= 0;
-			ind          <= 0;
-			o_finished   <= '0';
+  -- process(clk) begin
+	-- if rising_edge(clk) then
+		-- if(reset = '1') then
+			-- addr_weights <= 0;
+			-- addr_inputs  <= 0;
+			-- ind          <= 0;
+			-- o_finished   <= '0';
 			
-		elsif (i_valid = '1') then
-			o_addr_inputs <= std_logic_vector(to_unsigned(addr_inputs, 8)) & std_logic_vector(to_unsigned(ind, 4));
-			o_addr_weights <= std_logic_vector(to_unsigned(addr_weights, 7)) & std_logic_vector(to_unsigned(ind, 4));
+		-- elsif (i_valid = '1') then
+			-- o_addr_inputs <= std_logic_vector(to_unsigned(addr_inputs, {{inputs_addr_size}})) & std_logic_vector(to_unsigned(ind, {{ind_bits}}));
+			-- o_addr_weights <= std_logic_vector(to_unsigned(addr_weights, {{weights_addr_size}})) & std_logic_vector(to_unsigned(ind, {{ind_bits}}));
 			
-			if rst = '1' then
-				reset_cc <= '0';
-				rst <= '0';
-			end if;
+			-- if rst = '1' then
+				-- reset_cc <= '0';
+				-- rst <= '0';
+			-- end if;
 			
-			if ind < ind_max-1 then
-				ind <= ind + 1;
-			else
-				ind <= 0;
-				-- reset computing column
-				reset_cc <= '1';
-				rst <= '1';
-				if addr_weights < addr_weights_max-1 then
-					addr_weights <= addr_weights + 1;
-				else
-					addr_weights <= 0;
-					if addr_inputs < addr_inputs_max-1 then
-						addr_inputs <= addr_inputs + 1;
-					else
-						addr_inputs <= 0;
-						o_finished <= '1';
-					end if;
-				end if;
-			end if;
-		end if;
-	end if;
-  end process;
+			-- if ind < ind_max-1 then
+				-- ind <= ind + 1;
+			-- else
+				-- ind <= 0;
+				-- --reset computing column
+				-- reset_cc <= '1';
+				-- rst <= '1';
+				-- if addr_weights < addr_weights_max-1 then
+					-- addr_weights <= addr_weights + 1;
+				-- else
+					-- addr_weights <= 0;
+					-- if addr_inputs < addr_inputs_max-1 then
+						-- addr_inputs <= addr_inputs + 1;
+					-- else
+						-- addr_inputs <= 0;
+						-- o_finished <= '1';
+					-- end if;
+				-- end if;
+			-- end if;
+		-- end if;
+	-- end if;
+  -- end process;
 
 
   -- control data flow
